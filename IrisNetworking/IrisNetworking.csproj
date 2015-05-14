@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B08E26DD-F434-4257-8138-BC935ED4FBAC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IrisNetworking</RootNamespace>
+    <AssemblyName>IrisNetworking</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Exceptions\NotAllowedOperationException.cs" />
+    <Compile Include="Exceptions\NotInitializedException.cs" />
+    <Compile Include="Exceptions\ConnectionFailedException.cs" />
+    <Compile Include="Internal\IrisClient.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisObjectDeletionRequest.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisInstantiationRequestMessage.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisClientHandshakeMessage.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisRPCMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisInstantiationMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisFrameUpdateMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisObjectDeletionMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisPlayerJoinedMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisPlayerLeftMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisServerFullMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisServerToClientMessage.cs" />
+    <Compile Include="Internal\Messages\Structures\IrisViewUpdate.cs" />
+    <Compile Include="IrisConsole.cs" />
+    <Compile Include="Internal\IrisDedicatedServer.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisServerHandshakeMessage.cs" />
+    <Compile Include="IrisNetworkMessage.cs" />
+    <Compile Include="IrisMaster.cs" />
+    <Compile Include="IrisPlayer.cs" />
+    <Compile Include="IrisSerializable.cs" />
+    <Compile Include="IrisStream.cs" />
+    <Compile Include="IrisView.cs" />
+    <Compile Include="Sockets\IrisServerSocket.cs" />
+    <Compile Include="Sockets\IrisClientSocket.cs" />
+    <Compile Include="IrisNetwork.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Snappy.Sharp\Snappy.Sharp.csproj">
+      <Project>{788f5c45-1987-4075-a1d1-be90317f677d}</Project>
+      <Name>Snappy.Sharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
