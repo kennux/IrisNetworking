@@ -97,6 +97,18 @@ public static class IrisAPI
 	}
 	
 	/// <summary>
+	/// Initializes the iris network.
+	/// You should call this function in the constructor of your manager.
+	/// 
+	/// You can also use this function to reset the networking, it will reset everything.
+	/// </summary>
+	/// <param name="manager"></param>
+	public static void Initialize(IrisMaster masterInstance)
+	{
+		IrisNetwork.Initialize (masterInstance);
+	}
+	
+	/// <summary>
 	/// Registers an additional serialization method.
 	/// This must be done before connecting to the network or in complete sync, if the rpc method list gets out of order scary things will happen.
 	/// 
@@ -184,9 +196,13 @@ public static class IrisAPI
 	/// Clients will send an instatiation request.
 	/// </summary>
 	/// <param name="owner">This parameter will only get used if we are the master client</param>
-	public static void InstantiateObject(string name, byte[] initialState, IrisPlayer owner = null)
+	public static void InstantiateObject(string name, Vector3 position, Quaternion rotation, IrisPlayer owner = null)
 	{
-		IrisNetwork.InstantiateObject(name, initialState, owner);
+		IrisStream stream = IrisNetwork.CreateWritingStream ();
+		stream.Serialize (ref position);
+		stream.Serialize (ref rotation);
+
+		IrisNetwork.InstantiateObject(name, stream.GetBytes(), owner);
 	}
 	
 	/// <summary>

@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{98760ADD-10B7-3035-DE7E-A0871E8E4B67}</ProjectGuid>
+	<ProjectGuid>{1B56A87E-D726-BF53-E44A-DB5EEF54C5ED}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -46,17 +46,50 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\ConnectionFailedException.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\NotAllowedOperationException.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\NotInitializedException.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\IrisClient.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\IrisDedicatedServer.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisClientHandshakeMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisInstantiationRequestMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisObjectDeletionRequest.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisFrameUpdateMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisInstantiationMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisObjectDeletionMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisPlayerJoinedMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisPlayerLeftMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisRPCMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerFullMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerHandshakeMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerToClientMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\Structures\IrisViewUpdate.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisConsole.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisMaster.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisNetwork.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisNetworkMessage.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisPlayer.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisSerializable.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisStream.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisView.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Sockets\IrisClientSocket.cs" />
+     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Sockets\IrisServerSocket.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisAPI.cs" />
+     <Compile Include="Assets\Iris\Scripts\IrisExtension.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisNetworkView.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisUnityMaster.cs" />
+     <Compile Include="Assets\Iris\Scripts\SmoothTransformSync.cs" />
+     <Compile Include="Assets\Iris\Scripts\Test\MoveRandomUpDown.cs" />
+     <Compile Include="Assets\Iris\Tests\RPCTest.cs" />
+     <Compile Include="Assets\Iris\Tests\Spawner.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
  <Reference Include="Snappy.Sharp">
- <HintPath>E:/Unity/Iris/Assets/Iris/Snappy.Sharp.dll</HintPath>
- </Reference>
- <Reference Include="IrisNetworking">
- <HintPath>E:/Unity/Iris/Assets/Iris/IrisNetworking.dll</HintPath>
+ <HintPath>E:/Unity/IrisNetworking/Unity_Implementation/Assets/Iris/Snappy.Sharp.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.iOS.Extensions.Xcode">
  <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/iossupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>

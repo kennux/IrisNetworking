@@ -1,10 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using IrisNetworking;
 
 public class IrisUnityMaster : MonoBehaviour, IrisMaster
 {
+	public class RPCMethodInfo
+	{
+		public MethodInfo methodInfo;
+		public System.Type type;
+
+		public RPCMethodInfo(MethodInfo methodInfo, System.Type t)
+		{
+			this.methodInfo = methodInfo;
+			this.type = t;
+		}
+	}
+
 	/// <summary>
 	/// How often should the networking get updates.
 	/// </summary>
@@ -26,17 +39,97 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	private Dictionary<int, IrisView> views = new Dictionary<int, IrisView>();
 
 	/// <summary>
+	/// The RPC methods dictionary which will get used for invoking rpcs.
+	/// </summary>
+	private static Dictionary<string, RPCMethodInfo> rpcMethods = new Dictionary<string, RPCMethodInfo> ();
+
+	// DEBUG
+	public bool Connect;
+	public string ip;
+	public short port;
+
+	/// <summary>
+	/// Gets the RPC method for the given name.
+	/// Returns null if method not found!
+	/// </summary>
+	/// <returns>The RPC method.</returns>
+	public static RPCMethodInfo GetRPCMethod(string name)
+	{
+		if (rpcMethods.ContainsKey (name))
+			return rpcMethods [name];
+		return null;
+	}
+
+	/// <summary>
+	/// Loads the RPC list.
+	/// This is a very expensive call and will only get executed once in Start().
+	/// </summary>
+	private static void LoadRPCList()
+	{
+		// TODO: Cache this from editor!
+
+		// Define base type
+		System.Type baseType = typeof(MonoBehaviour);
+
+		// Load all subclasses of MonoBehaviour 
+		List<System.Type> result = new List<System.Type>();
+		Assembly[] AS = System.AppDomain.CurrentDomain.GetAssemblies();
+
+		// Now we iterate through every assembly and get
+		foreach (System.Reflection.Assembly A in AS)
+		{
+			// Check if classes are subclass of the basetype
+			System.Type[] types = A.GetTypes();
+			foreach (var T in types)
+			{
+				if (T.IsSubclassOf(baseType))
+					result.Add(T);
+			}
+		}
+
+		// Now we got all subtypes of MonoBehaviour.
+		// Let's index them for RPC's
+		rpcMethods.Clear ();
+
+		foreach (System.Type t in result)
+		{
+			// Get methods which are:
+			// Public, non-public or instance functions
+			MethodInfo[] typeMethods = t.GetMethods (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+			// Check for the RPC notation
+			foreach (MethodInfo m in typeMethods)
+			{
+				if (m.IsDefined(typeof(UnityEngine.RPC), false))
+					rpcMethods.Add (m.Name, new RPCMethodInfo(m, t));
+			}
+		}
+	}
+	
+	/// <summary>
 	/// Start this instance and initializes iris network.
 	/// </summary>
 	public void Start()
 	{
+		LoadRPCList ();
+
+		// Init iris
+		IrisAPI.Initialize (this);
+
 		// Register all scene views
 		foreach (IrisNetworkView v in FindObjectsOfType<IrisNetworkView>())
 		{
-			this.RegisterView(v.GetViewId(), v);
+
+			v.InitializeSceneView(0, 0, "STATIC");
+			IrisNetwork.RegisterStaticView(v);
 		}
 
-		// TODO: Connect
+		if (this.Connect)
+			IrisAPI.ConnectDedicated(ip, port);
+		else
+			IrisAPI.StartDedicated(ip, port, 10);
+
+		this.StartCoroutine (this.UpdateRoutine());
 	}
 
 	/// <summary>
@@ -77,8 +170,6 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	{
 		if (views.ContainsKey(viewId))
 			views.Remove(viewId);
-		else
-			Debug.LogError("Tried to remove non-existing view object.");
 	}
 	
 	public List<IrisView> GetViews()
@@ -90,7 +181,6 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	{
 		if (!views.ContainsKey(viewId))
 		{
-			Debug.LogError("Tried to find view " + viewId + " but this view is not existing!");
 			return null;
 		}
 		
@@ -125,7 +215,9 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	/// <returns></returns>
 	public IrisPlayer GetPlayer(int playerId)
 	{
-		return this.players[playerId];
+		if (this.players.ContainsKey(playerId))
+			return this.players[playerId];
+		return null;
 	}
 	
 	/// <summary>
@@ -158,21 +250,38 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	/// <param name="owner">Owner.</param>
 	public IrisView SpawnObject(string objectName, int viewId, IrisPlayer owner, byte[] initialState)
 	{
+		// Deserialize initial data
+		Vector3 position = Vector3.zero;
+		Quaternion rotation = Quaternion.identity;
+
+		IrisStream stream = IrisNetwork.CreateReadingStream (initialState);
+		stream.Serialize (ref position);
+		stream.Serialize (ref rotation);
+		
 		// Instantiate
 		GameObject go = GameObject.Instantiate<GameObject> (Resources.Load (objectName) as GameObject);
-
-		// Create internal iris view, which is a very basic iris view implementation.
+		go.transform.position = position;
+		go.transform.rotation = rotation;
+		
+		// Get iris view and initialize it
 		IrisNetworkView irisView = go.GetComponent<IrisNetworkView> ();
-
+		irisView.InitializeDynamicView (owner.PlayerId, viewId, objectName);
+		
 		if (irisView == null)
 			Debug.LogError ("Instantiated object with iris network but the object didnt got an iris view attached: " + objectName);
-		
-		// Perform initial deserialization
-		IrisStream stream = new IrisStream(this, initialState);
-		irisView.Serialize (stream);
-		
+
 		this.RegisterView(viewId, irisView);
 		
 		return irisView;
+	}
+
+	void OnApplicationQuit()
+	{
+		IrisNetwork.Disconnect ();
+	}
+	
+	public void OnDestroy()
+	{
+		IrisNetwork.Disconnect ();
 	}
 }
