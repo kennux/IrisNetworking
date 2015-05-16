@@ -11,10 +11,10 @@ It supports the following features so far:
 - RPC-Buffering
 - Dedicated Servers
 - Unity implementation (Still WIP)
+- View takeover
 
 Planned features:
 
-- View takeover
 - Master server for Dedicated Servers
 - PhotonCloud like Cloud functions
 

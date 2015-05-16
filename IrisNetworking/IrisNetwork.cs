@@ -745,6 +745,9 @@ namespace IrisNetworking
             if (newOwner == null)
                 newOwner = master.GetLocalPlayer();
 
+            if (newOwner == view.GetOwner())
+                return;
+
             if (isMasterClient)
             {
                 // Just execute the request and handle it accordingly
@@ -757,6 +760,16 @@ namespace IrisNetworking
                     if (isDedicated)
                     {
                         dedicatedServer.BroadcastMessage(new IrisViewOwnerChangeMessage(master.GetLocalPlayer(), view, newOwner));
+                    }
+                }
+                else
+                {
+                    // Request got rejected
+                    IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Rejected View ownership request from " + newOwner + " for view id = " + view.GetViewId());
+
+                    if (isDedicated)
+                    {
+                        dedicatedServer.SendMessageToPlayer(newOwner, new IrisViewOwnershipRequestRejectedMessage(master.GetLocalPlayer(), view));
                     }
                 }
             }

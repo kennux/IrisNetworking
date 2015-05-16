@@ -470,6 +470,16 @@ namespace IrisNetworking.Internal
                             ownerChange.View.SetOwner(ownerChange.NewOwner);
                     }
                     break;
+                    // Ownership request rejected
+                case 9:
+                    {
+                        IrisViewOwnershipRequestRejectedMessage ownershipRejectMessage = new IrisViewOwnershipRequestRejectedMessage(null, null);
+                        ownershipRejectMessage.Serialize(stream);
+
+                        if (ownershipRejectMessage.View != null)
+                            ownershipRejectMessage.View.OwnershipRequestRejected();
+                    }
+                    break;
             }
         }
         #endregion

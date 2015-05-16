@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MoveRandomUpDown : MonoBehaviour
+public class MoveUpDown : MonoBehaviour
 {
 	// Update is called once per frame
 	void Update ()
 	{
 		IrisNetworkView view = this.GetComponent<IrisNetworkView> ();
-		if (IrisAPI.Ready && (view == null || !view.isMine))
-			Destroy (this);
+        if (IrisAPI.Ready && (view == null || !view.isMine))
+            return;
 
 		this.transform.position = new Vector3
 		(

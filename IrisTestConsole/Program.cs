@@ -8,8 +8,13 @@ using System.IO;
 
 namespace IrisTestConsole
 {
-    static class Program
+    static class IrisTestConsole
     {
+        /// <summary>
+        /// Gets returned by the test view in OwnershipRequest().
+        /// </summary>
+        public static bool OwnershipRequestAnswer = true;
+
         /// <summary>
         /// The iris server socket.
         /// </summary>
@@ -244,6 +249,14 @@ namespace IrisTestConsole
                         }
                         else
                             IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: request_ownership [viewId]");
+                        break;
+                    case "ownership_request_answer":
+                        if (inputParts.Length == 2)
+                        {
+                            OwnershipRequestAnswer = bool.Parse(inputParts[1]);
+                        }
+                        else
+                            IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: ownership_request_answer [true/false]");
                         break;
                     #endregion
 

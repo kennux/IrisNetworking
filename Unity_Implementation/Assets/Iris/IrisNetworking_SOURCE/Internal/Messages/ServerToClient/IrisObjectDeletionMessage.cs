@@ -7,7 +7,7 @@ namespace IrisNetworking.Internal
     /// <summary>
     /// This packet gets used to request object deletions on the master.
     /// 
-    /// PacketID = 2
+    /// PacketID = 5
     /// </summary>
     class IrisObjectDeletionMessage : IrisServerToClientMessage
     {

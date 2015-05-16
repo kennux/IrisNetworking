@@ -69,13 +69,7 @@ namespace IrisNetworking
             Console.WriteLine("[" + DateTime.Now + "] - [" + module + "]: " + message);
             Console.ForegroundColor = bkColor;*/
 
-			// UNITY
-			string output = "[" + DateTime.Now + "] - [" + module + "]: " + message;
-
-			if (type == MessageType.ERROR)
-				UnityEngine.Debug.LogError (output);
-			else
-				UnityEngine.Debug.Log (output);
+            UnityEngine.Debug.Log(type + ", [" + module + "]: " + message);
         }
     }
 }

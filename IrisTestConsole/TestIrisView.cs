@@ -144,12 +144,17 @@ namespace IrisNetworking.Internal
         public bool OwnershipRequest(IrisPlayer requester)
         {
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "TestIrisView", "Ownership request incoming from " + requester);
-            return true;
+            return IrisTestConsole.IrisTestConsole.OwnershipRequestAnswer;
         }
 
         public bool IsStatic()
         {
             return false;
+        }
+
+        public void OwnershipRequestRejected()
+        {
+            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "TestIrisView", "Ownership request got rejected! View ID = " + this.GetViewId());
         }
     }
 }

@@ -51,6 +51,7 @@
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisViewOwnershipRequestMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisViewOwnershipRequestRejectedMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisViewOwnerChangeMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisRPCMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisInstantiationMessage.cs" />

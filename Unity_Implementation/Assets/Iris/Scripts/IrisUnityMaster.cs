@@ -111,6 +111,8 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	/// </summary>
 	public void Start()
 	{
+        IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
+
 		LoadRPCList ();
 
 		// Init iris

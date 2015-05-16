@@ -126,5 +126,10 @@ namespace IrisNetworking
         /// <param name="requester"></param>
         /// <returns></returns>
         bool OwnershipRequest(IrisPlayer requester);
+
+        /// <summary>
+        /// Gets called on a client who requested a view ownership which got rejected by the server.
+        /// </summary>
+        void OwnershipRequestRejected();
     }
 }

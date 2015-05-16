@@ -4,6 +4,14 @@ using IrisNetworking;
 
 /// <summary>
 /// Unity iris network view.
+/// 
+/// MonoBehaviour Messages:
+/// 
+/// OnOwnershipRequestRejected(): 
+/// Called if the server sent a view ownership request rejection.
+/// 
+/// OnOwnershipChanged(IrisPlayer newOwner):
+/// Called if the server sent a view owner change packet.
 /// </summary>
 public class IrisNetworkView : MonoBehaviour, IrisView
 {
@@ -42,6 +50,8 @@ public class IrisNetworkView : MonoBehaviour, IrisView
 	private bool isStatic = false;
 
 	private byte[] initialState;
+
+    private bool destroy = false;
 	
 	public void InitializeSceneView(int ownerId, int viewId, string objectName)
 	{
@@ -106,10 +116,38 @@ public class IrisNetworkView : MonoBehaviour, IrisView
 		return this.owner;
 	}
 
+    /// <summary>
+    /// Sets the owner for this view.
+    /// </summary>
+    public void SetOwner(IrisPlayer player)
+    {
+        if (player == null)
+            throw new System.ArgumentNullException();
+
+        this.ownerId = player.PlayerId;
+
+        this.SendMessage("OnOwnershipChanged", player);
+    }
+
+    public bool OwnershipRequest(IrisPlayer requester)
+    {
+        IrisNetworkViewOwnershipRequestDecider decider = this.GetComponent<IrisNetworkViewOwnershipRequestDecider>();
+        if (decider == null)
+            return false;
+
+        return decider.OwnershipRequest(requester);
+    }
+
 	public void Update()
 	{
-		if (this.owner != null)
-			this.ownerStr = this.owner.ToString ();
+        if (this.destroy)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
+        if (this.owner != null)
+            this.ownerStr = this.owner.ToString();
 	}
 	
 	/// <summary>
@@ -129,9 +167,9 @@ public class IrisNetworkView : MonoBehaviour, IrisView
 	
 	public void Destroy()
 	{
-		Destroy (this.gameObject);
+        this.destroy = true;
 	}
-	
+
 	public void GotRPC(string method, object[] args, IrisPlayer sender)
 	{
 		// Find method info
@@ -204,4 +242,14 @@ public class IrisNetworkView : MonoBehaviour, IrisView
 	{
 		return this.initialState;
 	}
+
+    public void OwnershipRequestRejected()
+    {
+        this.SendMessage("OnOwnershipRequestRejected");
+    }
+
+    public void RequestOwnership()
+    {
+        IrisNetwork.RequestViewOwnership(this);
+    }
 }
