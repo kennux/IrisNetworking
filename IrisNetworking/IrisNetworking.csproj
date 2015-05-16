@@ -43,13 +43,15 @@
     <Compile Include="Exceptions\NotInitializedException.cs" />
     <Compile Include="Exceptions\ConnectionFailedException.cs" />
     <Compile Include="Internal\IrisClient.cs" />
+    <Compile Include="Internal\IrisServer.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisObjectDeletionRequest.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisInstantiationRequestMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisClientHandshakeMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
-    <Compile Include="Internal\Messages\ClientToServer\IrisOwnershipRequestMessage.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisViewOwnershipRequestMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisViewOwnerChangeMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisRPCMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisInstantiationMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisFrameUpdateMessage.cs" />

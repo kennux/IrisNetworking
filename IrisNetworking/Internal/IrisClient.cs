@@ -57,7 +57,7 @@ namespace IrisNetworking.Internal
         /// <summary>
         /// Only gets set if this player is a client on a dedicated server instance.
         /// </summary>
-        private IrisDedicatedServer dedicatedServerMaster;
+        private IrisServer serverMaster;
 
         /// <summary>
         /// The event / action called if the underlying socket disconnects.
@@ -92,11 +92,11 @@ namespace IrisNetworking.Internal
         /// IMPORTANT: ONLY USE THIS CONSTRUCTOR FOR SERVER CLIENTS
         /// </summary>
         /// <param name="socket"></param>
-        public IrisClient(Socket socket, IrisPlayer player, IrisMaster master, IrisDedicatedServer dedicatedServerMaster, Action<IrisClient> disconnect)
+        public IrisClient(Socket socket, IrisPlayer player, IrisMaster master, IrisServer dedicatedServerMaster, Action<IrisClient> disconnect)
         {
             this.clientSocket = new IrisClientSocket(socket, this.ReceivePacket, this.ClientDisconnected);
             this.master = master;
-            this.dedicatedServerMaster = dedicatedServerMaster;
+            this.serverMaster = dedicatedServerMaster;
             this.player = player;
             this.isServerClient = true;
 
@@ -170,7 +170,7 @@ namespace IrisNetworking.Internal
                     // Broadcast player joined data
                     List<IrisPlayer> players = this.GetOtherPlayers();
                     IrisPlayerJoinedMessage joinedMessage = new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), this.player);
-                    this.dedicatedServerMaster.SendMessageToPlayers(players, joinedMessage);
+                    this.serverMaster.SendMessageToPlayers(players, joinedMessage);
 
                     // Send all currently joined players to our newly joined player.
                     foreach (IrisPlayer pl in players)
@@ -269,6 +269,7 @@ namespace IrisNetworking.Internal
                         }
                     }
                     break;
+                    // RPC Exceution message
                 case 4:
                     if (this.player != null)
                     {
@@ -292,6 +293,7 @@ namespace IrisNetworking.Internal
                             IrisNetwork.RPC(rpcMessage.View, rpcMessage.Targets2, rpcMessage.Method, rpcMessage.Args, rpcMessage.Buffered, this.player);
                     }
                     break;
+                    // RPC Clear request
                 case 5:
                     if (this.player != null)
                     {
@@ -307,6 +309,27 @@ namespace IrisNetworking.Internal
                             IrisNetwork.ClearRPCBuffer(clearMessage.View);
                         }
                     }
+                    break;
+                    // View ownership request
+                case 6:
+                    if (this.player != null)
+                    {
+                        IrisViewOwnershipRequestMessage ownerChangeMessage = new IrisViewOwnershipRequestMessage(null, null);
+                        ownerChangeMessage.Serialize(stream);
+
+                        if (ownerChangeMessage.View != null)
+                        {
+                            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got View ownership request from " + this.player + " for view id = " + ownerChangeMessage.View.GetViewId());
+
+                            // Change the ownership
+                            IrisNetwork.RequestViewOwnership(ownerChangeMessage.View, this.player);
+                        }
+                    }
+                    break;
+
+                    // If we receive unknown data we will immediately cut the connection
+                default:
+                    this.Close();
                     break;
             }
         }
@@ -422,6 +445,7 @@ namespace IrisNetworking.Internal
                         }
                     }
                     break;
+                    // RPC Call
                 case 7:
                     {
                         IrisRPCMessage rpcMessage = new IrisRPCMessage(null, null, null, null);
@@ -431,6 +455,19 @@ namespace IrisNetworking.Internal
 
                         // Forward RPC
                         rpcMessage.View.GotRPC(rpcMessage.Method, rpcMessage.Args, rpcMessage.Sender);
+                    }
+                    break;
+                    // Ownership change
+                case 8:
+                    {
+                        IrisViewOwnerChangeMessage ownerChange = new IrisViewOwnerChangeMessage(null, null, null);
+                        ownerChange.Serialize(stream);
+
+                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got ownership change message from " + ownerChange.Sender + " for view id = " + ownerChange.View.GetViewId() + ", new owner: " + ownerChange.NewOwner);
+
+                        // Change owner
+                        if (ownerChange.View != null)
+                            ownerChange.View.SetOwner(ownerChange.NewOwner);
                     }
                     break;
             }

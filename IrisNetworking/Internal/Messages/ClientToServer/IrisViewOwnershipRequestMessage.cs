@@ -10,16 +10,11 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 6
     /// </summary>
-    class IrisOwnershipRequestMessage : IrisNetworkMessage
+    class IrisViewOwnershipRequestMessage : IrisNetworkMessage
     {
         public IrisView View;
 
-        /// <summary>
-        /// Used for compression and encryption (TODO).
-        /// </summary>
-        private IrisMaster master;
-
-        public IrisOwnershipRequestMessage(IrisPlayer sender, IrisView view)
+        public IrisViewOwnershipRequestMessage(IrisPlayer sender, IrisView view)
             : base(sender)
         {
             this.View = view;
@@ -32,6 +27,11 @@ namespace IrisNetworking.Internal
 
         public override void Serialize(IrisStream stream)
         {
+            int viewId = (this.View != null ? this.View.GetViewId() : -1);
+            stream.Serialize(ref viewId);
+
+            if (!stream.IsWriting)
+                this.View = IrisNetwork.FindView(viewId);
         }
     }
 }

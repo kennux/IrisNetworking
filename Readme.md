@@ -10,11 +10,12 @@ It supports the following features so far:
 - RPC-Calls
 - RPC-Buffering
 - Dedicated Servers
+- Unity implementation (Still WIP)
 
 Planned features:
 
+- View takeover
 - Master server for Dedicated Servers
-- Unity implementation (In Progress)
 - PhotonCloud like Cloud functions
 
 This engine is still in alpha-stage and not ready for productional use!

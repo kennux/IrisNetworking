@@ -725,6 +725,48 @@ namespace IrisNetworking
 
 			return master.FindView (viewId);
 		}
+
+        /// <summary>
+        /// This will request an view ownership change.
+        /// Viewownership requests are processed in the view implementation. For further detail see IrisView.OwnershipRequest(request).
+        /// 
+        /// The newowner parameter can only get used on a server.
+        /// If it is null on a server, it will grab the local server player.
+        /// </summary>
+        /// <param name="view"></param>
+        public static void RequestViewOwnership(IrisView view, IrisPlayer newOwner = null)
+        {
+            if (!Initialized)
+                throw new NotInitializedException("Cant request a view ownership if networking didn't got initialized.");
+
+            if (!Connected)
+                throw new NotInitializedException("Cant request a view ownership if not connected to a network.");
+
+            if (newOwner == null)
+                newOwner = master.GetLocalPlayer();
+
+            if (isMasterClient)
+            {
+                // Just execute the request and handle it accordingly
+                if (view.OwnershipRequest(newOwner))
+                {
+                    // Change owner
+                    view.SetOwner(newOwner);
+
+                    // Announce
+                    if (isDedicated)
+                    {
+                        dedicatedServer.BroadcastMessage(new IrisViewOwnerChangeMessage(master.GetLocalPlayer(), view, newOwner));
+                    }
+                }
+            }
+            else
+            {
+                IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "Requested view ownership for " + view.GetViewId());
+                // Send ownership request
+                irisClient.SendMessage(new IrisViewOwnershipRequestMessage(null, view));
+            }
+        }
 		
 		#endregion
 

@@ -176,6 +176,7 @@ namespace IrisTestConsole
                         IrisNetwork.UpdateFrame();
                         break;
 
+
                     #endregion
 
                     #region Object commands
@@ -233,6 +234,16 @@ namespace IrisTestConsole
                         }
                         else
                             IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: destroy_object [viewId]");
+                        break;
+                    case "request_ownership":
+                        if (inputParts.Length == 2)
+                        {
+                            int viewId = int.Parse(inputParts[1]);
+
+                            IrisNetwork.RequestViewOwnership(IrisNetwork.FindView(viewId));
+                        }
+                        else
+                            IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: request_ownership [viewId]");
                         break;
                     #endregion
 
