@@ -63,19 +63,11 @@ namespace IrisNetworking
 			if (IrisNetwork.verbosity == IrisVerbosity.ERRORS && type != MessageType.ERROR)
 				return;
 
-            /*ConsoleColor bkColor = Console.ForegroundColor;
+            ConsoleColor bkColor = Console.ForegroundColor;
             Console.ForegroundColor = messageTypeConfigs[(int)Convert.ChangeType(type, type.GetTypeCode())].consoleColor;
 
             Console.WriteLine("[" + DateTime.Now + "] - [" + module + "]: " + message);
-            Console.ForegroundColor = bkColor;*/
-
-			// UNITY
-			string output = "[" + DateTime.Now + "] - [" + module + "]: " + message;
-
-			if (type == MessageType.ERROR)
-				UnityEngine.Debug.LogError (output);
-			else
-				UnityEngine.Debug.Log (output);
+            Console.ForegroundColor = bkColor;
         }
     }
 }

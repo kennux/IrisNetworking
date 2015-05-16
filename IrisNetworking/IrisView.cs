@@ -55,6 +55,13 @@ namespace IrisNetworking
 		IrisPlayer GetOwner();
 
         /// <summary>
+        /// Sets the owner of this view.
+        /// Dont call this by yourself. It will only get called from iris internally.
+        /// </summary>
+        /// <param name="owner"></param>
+        void SetOwner(IrisPlayer owner);
+
+        /// <summary>
         /// Gets called if this view got destroyed by a master.
         /// </summary>
         void Destroy();
@@ -109,5 +116,15 @@ namespace IrisNetworking
 		/// </summary>
 		/// <returns>The initial state.</returns>
 		byte[] GetInitialState();
+
+        /// <summary>
+        /// Gets called if an object ownership request will get sent from the client.
+        /// Only called on the server. Never on clients.
+        /// 
+        /// Return true in here if the owner ship request should get accepted.
+        /// </summary>
+        /// <param name="requester"></param>
+        /// <returns></returns>
+        bool OwnershipRequest(IrisPlayer requester);
     }
 }

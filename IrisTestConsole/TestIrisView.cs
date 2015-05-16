@@ -123,5 +123,33 @@ namespace IrisNetworking.Internal
         {
             this.rpcBuffer.Clear();
         }
+
+        public void SetOwner(IrisPlayer owner)
+        {
+            this.owner = owner;
+        }
+
+        private byte[] initialState;
+
+        public void SetInitialState(byte[] initialState)
+        {
+            this.initialState = initialState;
+        }
+
+        public byte[] GetInitialState()
+        {
+            return this.initialState;
+        }
+
+        public bool OwnershipRequest(IrisPlayer requester)
+        {
+            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "TestIrisView", "Ownership request incoming from " + requester);
+            return true;
+        }
+
+        public bool IsStatic()
+        {
+            return false;
+        }
     }
 }
