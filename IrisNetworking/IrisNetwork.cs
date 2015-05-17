@@ -40,6 +40,17 @@ namespace IrisNetworking
             }
         }
 
+        public static int BytesSent
+        {
+            get
+            {
+                if (isDedicated)
+                    return dedicatedServer.BytesSent;
+                else
+                    return irisClient.BytesSent;
+            }
+        }
+
         public static bool Ready
         {
             get { return Connected && irisClient != null && irisClient.Handshaked;  }

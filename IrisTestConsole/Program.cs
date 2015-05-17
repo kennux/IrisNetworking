@@ -309,6 +309,12 @@ namespace IrisTestConsole
                         break;
                     #endregion
 
+                    #region Statistics
+                    case "stats":
+                        IrisConsole.Log(IrisConsole.MessageType.INFO, "IrisTestConsole", "Bytes sent: " + IrisNetwork.BytesSent);
+                        break;
+                    #endregion
+
                     default:
                         IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "Command unknown!");
                         break;

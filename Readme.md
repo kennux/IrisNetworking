@@ -20,6 +20,18 @@ Planned features:
 
 This engine is still in alpha-stage and not ready for productional use!
 
+Thread-safety
+======================
+
+Iris Networking was developed with multithreading in mind.
+It uses synchronous sockets whose receive and send queue handlers are offloaded to seperate threads.
+
+You can set IrisNetwork.Multithread to false to prevent those threads from actually interpreting arriving data.
+If you do this, all interpretation will be done in IrisNetwork.UpdateFrame(). It is your responsibility now to take care of calling it.
+
+If you set it to true, incoming messages will get interpreted on the receiver thread which will be a unique thread for every socket.
+So you need to make sure that every base class or interface you use is implemented with thread-safety in mind.
+
 Unity implementation
 ======================
 

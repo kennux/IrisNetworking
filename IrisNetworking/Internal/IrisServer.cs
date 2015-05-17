@@ -38,6 +38,21 @@ namespace IrisNetworking.Internal
         protected Dictionary<int, IrisView> views = new Dictionary<int, IrisView>();
 
         /// <summary>
+        /// Forwards IrisClientSocket.BytesSent.
+        /// </summary>
+        public int BytesSent
+        {
+            get
+            {
+                int bytesSent = 0;
+                foreach (IrisClient c in clients)
+                    if (c != null && c.ClientSocket.Connected)
+                        bytesSent += c.BytesSent;
+                return bytesSent;
+            }
+        }
+
+        /// <summary>
         /// Event handler for an incoming connection on the server socket.
         /// </summary>
         /// <param name="socket"></param>

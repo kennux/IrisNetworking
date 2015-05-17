@@ -44,6 +44,14 @@ namespace IrisNetworking.Internal
         protected bool isServerClient;
 
         /// <summary>
+        /// Forwards IrisClientSocket.BytesSent.
+        /// </summary>
+        public int BytesSent
+        {
+            get { return this.clientSocket.BytesSent; }
+        }
+
+        /// <summary>
         /// Gets set to true if the handshake packet was received and interpreted.
         /// Will always be true on dedicated server construction.
         /// </summary>

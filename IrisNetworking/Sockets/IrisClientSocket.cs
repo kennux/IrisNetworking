@@ -32,6 +32,15 @@ namespace IrisNetworking.Sockets
         }
 
         /// <summary>
+        /// Returns the ammount of bytes transferred since this client got instantiated.
+        /// </summary>
+        public int BytesSent
+        {
+            get { return this.bytesSent; }
+        }
+        private int bytesSent;
+
+        /// <summary>
         /// The socket instance used for data sending / retrieval.
         /// </summary>
         protected Socket client;
@@ -289,9 +298,18 @@ namespace IrisNetworking.Sockets
                         }
                     }
 
-                    this.client.Send(BitConverter.GetBytes(payload.Length));
-
-                    this.client.Send(payload);
+                    // Send the data
+                    try
+                    {
+                        this.client.Send(BitConverter.GetBytes(payload.Length));
+                        this.bytesSent += 4;
+                        this.client.Send(payload);
+                        this.bytesSent += payload.Length;
+                    }
+                    catch (SocketException e)
+                    {
+                        this.Close();
+                    }
                 }
 
                 Thread.Sleep(THREAD_WORK_CHECK_DELAY);
@@ -376,7 +394,7 @@ namespace IrisNetworking.Sockets
                 }
                 catch (SocketException e)
                 {
-                    // TODO: Error handling
+                    this.Close();
                 }
             }
 
