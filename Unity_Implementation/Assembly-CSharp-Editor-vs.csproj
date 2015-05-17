@@ -5,11 +5,11 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{1B56A87E-D726-BF53-E44A-DB5EEF54C5ED}</ProjectGuid>
+	<ProjectGuid>{81860A96-8EED-807A-C54D-E084BCEE8BBD}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
-	<AssemblyName>Assembly-CSharp</AssemblyName>
+	<AssemblyName>Assembly-CSharp-Editor</AssemblyName>
 	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
 	<FileAlignment>512</FileAlignment>
 	<BaseDirectory>Assets</BaseDirectory>
@@ -46,40 +46,15 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Iris\Examples\EVP5MP\DeveloperConsole.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Extra\RigidbodyImpulse.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\CommonTools.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\SceneTools.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\TextureCanvas.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleAudio.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleCameraController.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleController.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleManager.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleStandardInput.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleTelemetry.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleViewConfig.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\BasicNetworkingManager.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\BitUtils.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MPVehicleAudio.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MPWheel.cs" />
-     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MultiplayerVehicle.cs" />
-     <Compile Include="Assets\Iris\Scripts\Interfaces\IrisNetworkViewOwnershipRequestDecider.cs" />
-     <Compile Include="Assets\Iris\Scripts\IrisAPI.cs" />
-     <Compile Include="Assets\Iris\Scripts\IrisBehaviour.cs" />
-     <Compile Include="Assets\Iris\Scripts\IrisExtension.cs" />
-     <Compile Include="Assets\Iris\Scripts\IrisNetworkView.cs" />
-     <Compile Include="Assets\Iris\Scripts\IrisUnityMaster.cs" />
-     <Compile Include="Assets\Iris\Scripts\SmoothTransformSync.cs" />
-     <Compile Include="Assets\Iris\Scripts\Test\MoveUpDown.cs" />
-     <Compile Include="Assets\Iris\Scripts\Test\TestOwnershipRequestDecider.cs" />
-     <Compile Include="Assets\Iris\Scripts\Test\TestOwnershipRequester.cs" />
-     <Compile Include="Assets\Iris\Tests\RPCTest.cs" />
-     <Compile Include="Assets\Iris\Tests\Spawner.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Editor\VehicleControllerInspector.cs" />
      <None Include="Assets\Iris\Examples\EVP5MP\Resources\CollisionDictionary.xml" />
      <None Include="Assets\Iris\Examples\EVP5MP\EVP5\Upgrading from Unity 4 - IMPORTANT.txt" />
      <None Include="Assets\Iris\Examples\EVP5MP\EVP5\Readme (seriously!).txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.UI">
+ <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/Editor/UnityEditor.UI.dll</HintPath>
  </Reference>
  <Reference Include="IrisNetworking">
  <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/Iris/IrisNetworking.dll</HintPath>
@@ -87,9 +62,55 @@
  <Reference Include="Snappy.Sharp">
  <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/Iris/Snappy.Sharp.dll</HintPath>
  </Reference>
+ <Reference Include="SyntaxTree.VisualStudio.Unity.Bridge">
+ <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/UnityVS/Editor/SyntaxTree.VisualStudio.Unity.Bridge.dll</HintPath>
+ </Reference>
+ <Reference Include="SyntaxTree.VisualStudio.Unity.Messaging">
+ <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/UnityVS/Editor/SyntaxTree.VisualStudio.Unity.Messaging.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityVS.VersionSpecific">
+ <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/UnityVS/Editor/UnityVS.VersionSpecific.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.Graphs">
+ <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.Graphs.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.Android.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/androidplayer/UnityEditor.Android.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.iOS.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/iossupport/UnityEditor.iOS.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.WP8.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/wp8support/UnityEditor.WP8.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.Metro.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/metrosupport/UnityEditor.Metro.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.BB10.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/blackberryplayer/UnityEditor.BB10.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.SamsungTV.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/stvplayer/STVPlayer/UnityEditor.SamsungTV.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.WebGL.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/webglsupport/UnityEditor.WebGL.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.LinuxStandalone.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/linuxstandalonesupport/UnityEditor.LinuxStandalone.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.WindowsStandalone.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/windowsstandalonesupport/UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.OSXStandalone.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/macstandalonesupport/UnityEditor.OSXStandalone.Extensions.dll</HintPath>
+ </Reference>
  <Reference Include="UnityEditor.iOS.Extensions.Xcode">
  <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/iossupport/UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
  </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-vs.csproj">
+      <Project>{1B56A87E-D726-BF53-E44A-DB5EEF54C5ED}</Project>      <Name>Assembly-CSharp-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

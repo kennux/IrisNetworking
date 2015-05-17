@@ -413,11 +413,18 @@ namespace IrisNetworking
 
                 IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "Server / Master sent frame update with " + views.Count + " view updates");
 
-                // Announce
-                if (isDedicated)
+                // Now, let's cull out view updates for each players.
+                foreach (IrisPlayer p in master.GetPlayers())
                 {
-					dedicatedServer.BroadcastMessage(new IrisFrameUpdateMessage(master.GetLocalPlayer(), updates.ToArray(), master));
-				}
+                    // Perform the culling
+                    // Every user will just get updates for views which aren't owned by him
+                    IrisViewUpdate[] viewUpdates = updates.FindAll((u) => IrisNetwork.FindView(u.viewId).GetOwner() != p).ToArray();
+
+                    if (isDedicated)
+                    {
+                        dedicatedServer.SendMessageToPlayer(p, new IrisFrameUpdateMessage(master.GetLocalPlayer(), viewUpdates, master));
+                    }
+                }
 			}
             else
             {

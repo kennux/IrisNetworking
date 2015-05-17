@@ -4,6 +4,12 @@ using System.Collections.Generic;
 using System.Reflection;
 using IrisNetworking;
 
+/// <summary>
+/// Messages (only on the object this script got attached to):
+/// 
+/// OnConnected():
+/// Called after successfull connection.
+/// </summary>
 public class IrisUnityMaster : MonoBehaviour, IrisMaster
 {
 	public class RPCMethodInfo
@@ -109,7 +115,7 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	/// <summary>
 	/// Start this instance and initializes iris network.
 	/// </summary>
-	public void Start()
+	public void Awake()
 	{
         IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
 
@@ -131,6 +137,9 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 		else
 			IrisAPI.StartDedicated(ip, port, 10);
 
+        // TODO: Check if really connected and handle error
+        this.SendMessage("OnConnected");
+
 		this.StartCoroutine (this.UpdateRoutine());
 	}
 
@@ -142,8 +151,15 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	{
 		while (IrisNetwork.Connected)
 		{
-			IrisNetwork.UpdateFrame();
-			yield return new WaitForSeconds(1.0f / (float)this.updatesPerSecond);
+            try
+            {
+                IrisNetwork.UpdateFrame();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Error: " + e.Message + "\r\n" + e.StackTrace);
+            }
+            yield return new WaitForSeconds(1.0f / (float)this.updatesPerSecond);
 		}
 	}
 

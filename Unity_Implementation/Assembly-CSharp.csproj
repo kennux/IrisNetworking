@@ -19,7 +19,7 @@
 	<DebugType>full</DebugType>
 	<Optimize>false</Optimize>
 	<OutputPath>Temp\bin\Debug\</OutputPath>
-	<DefineConstants>DEBUG;TRACE;UNITY_5_0_2;UNITY_5_0;UNITY_5;ENABLE_LICENSE_RENAME;ENABLE_NEW_BUGREPORTER;ENABLE_2D_PHYSICS;ENABLE_4_6_FEATURES;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_DUCK_TYPING;ENABLE_FRAME_DEBUGGER;ENABLE_GENERICS;ENABLE_HOME_SCREEN;ENABLE_IMAGEEFFECTS;ENABLE_LIGHT_PROBES_LEGACY;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_NEW_HIERARCHY;ENABLE_PHYSICS;ENABLE_PHYSICS_PHYSX3;ENABLE_PLUGIN_INSPECTOR;ENABLE_SHADOWS;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_AUDIOMIXER_SUSPEND;ENABLE_NONPRO;INCLUDE_DYNAMIC_GI;INCLUDE_GI;INCLUDE_IL2CPP;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_SUBSTANCE;ENABLE_TEXTUREID_MAP;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_MONO;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
+	<DefineConstants>DEBUG;TRACE;UNITY_5_0_2;UNITY_5_0;UNITY_5;ENABLE_LICENSE_RENAME;ENABLE_NEW_BUGREPORTER;ENABLE_2D_PHYSICS;ENABLE_4_6_FEATURES;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_DUCK_TYPING;ENABLE_FRAME_DEBUGGER;ENABLE_GENERICS;ENABLE_HOME_SCREEN;ENABLE_IMAGEEFFECTS;ENABLE_LIGHT_PROBES_LEGACY;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_NEW_HIERARCHY;ENABLE_PHYSICS;ENABLE_PHYSICS_PHYSX3;ENABLE_PLUGIN_INSPECTOR;ENABLE_SHADOWS;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_AUDIOMIXER_SUSPEND;ENABLE_NONPRO;INCLUDE_DYNAMIC_GI;INCLUDE_GI;INCLUDE_IL2CPP;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_SUBSTANCE;ENABLE_TEXTUREID_MAP;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_MONO;DEVELOPMENT_BUILD;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
 	<ErrorReport>prompt</ErrorReport>
 	<WarningLevel>4</WarningLevel>
 	<NoWarn>0169</NoWarn>
@@ -46,43 +46,26 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\ConnectionFailedException.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\NotAllowedOperationException.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Exceptions\NotInitializedException.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\IrisClient.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\IrisDedicatedServer.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\IrisServer.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisClientHandshakeMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisInstantiationRequestMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisObjectDeletionRequest.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ClientToServer\IrisViewOwnershipRequestMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisFrameUpdateMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisInstantiationMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisObjectDeletionMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisPlayerJoinedMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisPlayerLeftMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisRPCMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerFullMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerHandshakeMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisServerToClientMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisViewOwnerChangeMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\ServerToClient\IrisViewOwnershipRequestRejectedMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Internal\Messages\Structures\IrisViewUpdate.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisConsole.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisMaster.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisNetwork.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisNetworkMessage.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisPlayer.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisSerializable.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisStream.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\IrisView.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Sockets\IrisClientSocket.cs" />
-     <Compile Include="Assets\Iris\IrisNetworking_SOURCE\Sockets\IrisServerSocket.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\DeveloperConsole.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Extra\RigidbodyImpulse.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\CommonTools.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\SceneTools.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\Tools\TextureCanvas.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleAudio.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleCameraController.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleController.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleManager.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleStandardInput.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleTelemetry.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5\Scripts\VehicleViewConfig.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\BasicNetworkingManager.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\BitUtils.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MPVehicleAudio.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MPWheel.cs" />
+     <Compile Include="Assets\Iris\Examples\EVP5MP\EVP5MP\Scripts\MP\MultiplayerVehicle.cs" />
      <Compile Include="Assets\Iris\Scripts\Interfaces\IrisNetworkViewOwnershipRequestDecider.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisAPI.cs" />
+     <Compile Include="Assets\Iris\Scripts\IrisBehaviour.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisExtension.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisNetworkView.cs" />
      <Compile Include="Assets\Iris\Scripts\IrisUnityMaster.cs" />
@@ -92,8 +75,14 @@
      <Compile Include="Assets\Iris\Scripts\Test\TestOwnershipRequester.cs" />
      <Compile Include="Assets\Iris\Tests\RPCTest.cs" />
      <Compile Include="Assets\Iris\Tests\Spawner.cs" />
+     <None Include="Assets\Iris\Examples\EVP5MP\Resources\CollisionDictionary.xml" />
+     <None Include="Assets\Iris\Examples\EVP5MP\EVP5\Upgrading from Unity 4 - IMPORTANT.txt" />
+     <None Include="Assets\Iris\Examples\EVP5MP\EVP5\Readme (seriously!).txt" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="IrisNetworking">
+ <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/Iris/IrisNetworking.dll</HintPath>
  </Reference>
  <Reference Include="Snappy.Sharp">
  <HintPath>D:/Unity/IrisNetworking/Unity_Implementation/Assets/Iris/Snappy.Sharp.dll</HintPath>

@@ -1,0 +1,11 @@
+<CurseDictionary>
+  <CollisionList PhysicMaterial="Grass">
+    <DefaultReaction />
+  </CollisionList>
+  <CollisionList PhysicMaterial="CarBody">
+    <DefaultReaction>
+      <ParticleEmitter AssetPath="Assets/CuRSe/Standard Assets/Resources/Particles/particle_metal.prefab" AssetPathGuid="cc6e9d702265cf943af458c466ac6a5b" Offset="0.000" MinDist="0.000" MaxDist="10000.000" MinForce="1.000" MaxForce="10000.000" AllowedCollisionType="0" AllowedVisibilityType="0" EditorExpanded="True" MinActiveTime="1.000" MaxActiveTime="10.000" AxisAlignment="2" />
+      <Sound AssetPath="Assets/CuRSe/Standard Assets/Resources/Sounds/Metal.mp3" AssetPathGuid="44b54b1654e2046a6bb329e95ab7dec2" Volume="1.000" MinDist="0.000" MaxDist="10000.000" MinForce="1.000" MaxForce="10000.000" AllowedCollisionType="0" AllowedVisibilityType="0" EditorExpanded="True" />
+    </DefaultReaction>
+  </CollisionList>
+</CurseDictionary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 
 namespace IrisNetworking
 {
@@ -63,11 +64,26 @@ namespace IrisNetworking
 			if (IrisNetwork.verbosity == IrisVerbosity.ERRORS && type != MessageType.ERROR)
 				return;
 
-            ConsoleColor bkColor = Console.ForegroundColor;
-            Console.ForegroundColor = messageTypeConfigs[(int)Convert.ChangeType(type, type.GetTypeCode())].consoleColor;
+            // Workaround for VS C# <-> MONO C#
+            // We're getting and setting foreground console color by reflection.
+            // If this is supported, it gets set and otherwise not.
+            FieldInfo foregroundField = typeof(Console).GetField("ForegroundColor");
+
+            // Backup color
+            ConsoleColor bkColor = ConsoleColor.Gray;
+            if (foregroundField != null)
+                bkColor = (ConsoleColor) foregroundField.GetValue(null);
+
+            // Set type color
+            if (foregroundField != null)
+                foregroundField.SetValue(null, messageTypeConfigs[(int)Convert.ChangeType(type, type.GetTypeCode())].consoleColor);
+
 
             Console.WriteLine("[" + DateTime.Now + "] - [" + module + "]: " + message);
-            Console.ForegroundColor = bkColor;
+
+            // Set foreground color to backed up value
+            if (foregroundField != null)
+               foregroundField.SetValue(null, bkColor);
         }
     }
 }
