@@ -142,6 +142,7 @@ namespace IrisNetworking
         /// Used for AllocateViewID().
         /// </summary>
         private static int viewIdCounter = 0;
+        private static object viewIdCounterLock = new object();
 
         /// <summary>
         /// The current master instance.
@@ -485,6 +486,15 @@ namespace IrisNetworking
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "UpdateFrame call took " + elapsedMilliseconds + " ms");
         }
 
+        /// <summary>
+        /// Returns all currently known players.
+        /// </summary>
+        /// <returns></returns>
+        public static List<IrisPlayer> GetPlayers()
+        {
+            return master.GetPlayers();
+        }
+
 
         /// <summary>
         /// Allocates a view id.
@@ -495,8 +505,11 @@ namespace IrisNetworking
             if (!isMasterClient)
                 throw new NotSupportedException("Non-master tried calling AllocateViewID()");
 
-			viewIdCounter++;
-			return viewIdCounter;
+            lock (viewIdCounterLock)
+            {
+                viewIdCounter++;
+                return viewIdCounter;
+            }
 		}
 		
 		/// <summary>
@@ -727,8 +740,11 @@ namespace IrisNetworking
 		/// <param name="view">View.</param>
 		public static void RegisterStaticView(IrisView view)
 		{
-			view.SetViewId (viewIdCounter);
-			viewIdCounter++;
+            lock (viewIdCounterLock)
+            {
+                view.SetViewId(viewIdCounter);
+                viewIdCounter++;
+            }
 			RegisterView (view);
 		}
 

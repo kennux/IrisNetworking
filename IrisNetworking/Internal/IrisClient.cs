@@ -52,6 +52,19 @@ namespace IrisNetworking.Internal
         }
 
         /// <summary>
+        /// Returns the ping of this client.
+        /// This will only work if the server instance has a running ping thread (standard with IrisDedicatedServer).
+        /// </summary>
+        public int Ping
+        {
+            get
+            {
+                return this.ping;
+            }
+        }
+        private int ping;
+
+        /// <summary>
         /// Gets set to true if the handshake packet was received and interpreted.
         /// Will always be true on dedicated server construction.
         /// </summary>
@@ -71,6 +84,11 @@ namespace IrisNetworking.Internal
         /// The event / action called if the underlying socket disconnects.
         /// </summary>
         private Action<IrisClient> disconnectEvent;
+
+        /// <summary>
+        /// The ping timer used in SendPingPacket().
+        /// </summary>
+        private double pingTimer;
 
         /// <summary>
         /// The packet queue used for offloading packet interpretation on mainthread if IrisNetwork.Multithread is false.
@@ -102,19 +120,21 @@ namespace IrisNetworking.Internal
         /// <param name="socket"></param>
         public IrisClient(Socket socket, IrisPlayer player, IrisMaster master, IrisServer dedicatedServerMaster, Action<IrisClient> disconnect)
         {
-            this.clientSocket = new IrisClientSocket(socket, this.ReceivePacket, this.ClientDisconnected);
+            // Init
+            this.disconnectEvent = disconnect;
             this.master = master;
             this.serverMaster = dedicatedServerMaster;
             this.player = player;
             this.isServerClient = true;
+
+            // Create client socket
+            this.clientSocket = new IrisClientSocket(socket, this.ReceivePacket, this.ClientDisconnected);
 
             // Send handshake
             IrisServerHandshakeMessage handshake = new IrisServerHandshakeMessage(this.master.GetLocalPlayer(), player);
             this.SendMessage(handshake);
 
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Server sent handshake packet for new player " + handshake.player.PlayerId);
-
-            this.disconnectEvent = disconnect;
         }
 
         /// <summary>
@@ -209,6 +229,9 @@ namespace IrisNetworking.Internal
                     // Send last frame update
                     if (IrisFrameUpdateMessage.LastFrameUpdate != null)
                         this.SendMessage(IrisFrameUpdateMessage.LastFrameUpdate);
+
+                    // Send ping packet
+                    this.StartPing();
 
                     // Add to master
                     this.master.SetPlayer(this.player.PlayerId, this.player);
@@ -334,6 +357,21 @@ namespace IrisNetworking.Internal
                         }
                     }
                     break;
+                case 7:
+                    {
+                        IrisPongMessage pongMessage = new IrisPongMessage(null);
+                        pongMessage.Serialize(stream);
+
+                        double timestamp = DateTime.Now.ToUniversalTime().Subtract(
+                            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                        ).TotalMilliseconds;
+
+                        this.ping = (int)(timestamp - this.pingTimer);
+                        this.player.Ping = this.ping;
+
+                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got pong from client: " + this.player + ", ping: " + this.player.Ping + "ms");
+                    }
+                    break;
 
                     // If we receive unknown data we will immediately cut the connection
                 default:
@@ -379,7 +417,11 @@ namespace IrisNetworking.Internal
                         instantiationMessage.Serialize(stream);
 
                         // Forward to master
-                        this.master.SpawnObject(instantiationMessage.objectName, instantiationMessage.viewId, this.master.GetPlayer(instantiationMessage.ownerId), instantiationMessage.initialState);
+                        IrisPlayer owner = this.master.GetPlayer(instantiationMessage.ownerId);
+
+                        // If the owner already disconnected or someone send shit data, dont do anything.
+                        if (owner != null)
+                            this.master.SpawnObject(instantiationMessage.objectName, instantiationMessage.viewId, owner, instantiationMessage.initialState);
                     }
                     break;
                 case 2:
@@ -488,6 +530,31 @@ namespace IrisNetworking.Internal
                             ownershipRejectMessage.View.OwnershipRequestRejected();
                     }
                     break;
+                    // Ping - return Pong
+                case 10:
+                    {
+                        IrisPingMessage pingMessage = new IrisPingMessage(null);
+                        pingMessage.Serialize(stream);
+
+                        this.SendMessage(new IrisPongMessage(null));
+                    }
+                    break;
+                case 11:
+                    {
+                        // Ping update message
+                        IrisPingUpdateMessage pingUpdateMessage = new IrisPingUpdateMessage(null, null);
+                        pingUpdateMessage.Serialize(stream);
+                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisServer", "Received ping updates!");
+
+                        for (int i = 0; i < pingUpdateMessage.playerIds.Length; i++)
+                        {
+                            int id = pingUpdateMessage.playerIds[i];
+
+                            IrisPlayer player = IrisNetwork.FindPlayer(id);
+                            player.Ping = pingUpdateMessage.playerPings[i];
+                        }
+                    }
+                    break;
             }
         }
         #endregion
@@ -557,6 +624,22 @@ namespace IrisNetworking.Internal
                 players.Remove(this.player);
 
             return players;
+        }
+
+
+        /// <summary>
+        /// Sends a ping message to the remote end (So this should only get called on a dedicated server) and resets the ping timer.
+        /// </summary>
+        public void StartPing()
+        {
+            // Set timestamp to the pingtimer
+
+            this.pingTimer = DateTime.Now.ToUniversalTime().Subtract(
+                new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            ).TotalMilliseconds;
+
+            // Send out the packet
+            this.SendMessage(new IrisPingMessage(IrisNetwork.LocalPlayer));
         }
 
         #endregion

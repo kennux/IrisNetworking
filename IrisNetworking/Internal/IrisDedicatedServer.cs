@@ -34,6 +34,8 @@ namespace IrisNetworking.Internal
             p.Name = "SERVER";
             this.master.SetLocalPlayer(p);
             this.master.SetPlayer(0, p);
+
+            this.InitializePingThread(10000);
         }
     }
 }

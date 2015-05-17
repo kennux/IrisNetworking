@@ -135,6 +135,29 @@ namespace IrisNetworking
         }
 
         /// <summary>
+        /// Serializes the given int array.
+        /// </summary>
+        /// <param name="b"></param>
+        public void Serialize(ref int[] b)
+        {
+            if (this.IsWriting)
+            {
+                int len = b.Length;
+                this.Serialize(ref len);
+                for (int i = 0; i < b.Length; i++)
+                    this.Serialize(ref b[i]);
+            }
+            else
+            {
+                int len = 0;
+                this.Serialize(ref len);
+                b = new int[len];
+                for (int i = 0; i < b.Length; i++)
+                    this.Serialize(ref b[i]);
+            }
+        }
+
+        /// <summary>
         /// Serializes the given float.
         /// </summary>
         /// <param name="b"></param>
@@ -354,7 +377,14 @@ namespace IrisNetworking
             return this.data.ToArray();
         }
 
-        public void Dispose()
+        public virtual void Dispose()
+        {
+            this.Dispose(true);
+
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disp)
         {
             if (this.data != null)
                 this.data.Close();

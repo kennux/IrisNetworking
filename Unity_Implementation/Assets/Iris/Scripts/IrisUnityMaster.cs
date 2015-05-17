@@ -247,7 +247,13 @@ public class IrisUnityMaster : MonoBehaviour, IrisMaster
 	{
 		if (player != null)
 			player.SetMaster(this);
-		
+		else
+		{
+			if (this.players.ContainsKey(playerId))
+				this.players.Remove(playerId);
+			return;
+		}
+			
 		// Set player reference
 		if (this.players.ContainsKey(playerId))
 			this.players[playerId] = player;

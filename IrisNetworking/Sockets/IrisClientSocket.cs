@@ -130,6 +130,8 @@ namespace IrisNetworking.Sockets
             // Initialize threads
             this.sendingThread = new Thread(new ThreadStart(this.SenderThread));
             this.receivingThread = new Thread(new ThreadStart(this.ReceiverThread));
+            this.sendingThread.IsBackground = true;
+            this.receivingThread.IsBackground = true;
             this.sendingThread.Start();
             this.receivingThread.Start();
         }
@@ -239,80 +241,87 @@ namespace IrisNetworking.Sockets
         /// <param name="result"></param>
         private void SenderThread()
         {
-            // Temporary queue for 
-            Queue<byte[]> temporaryQueue = new Queue<byte[]>();
-
-            while (this.Connected)
+            try
             {
-                // Process sending queue
-                lock (this.sendingQueueLockObject)
+                // Temporary queue for 
+                Queue<byte[]> temporaryQueue = new Queue<byte[]>();
+
+                while (this.Connected)
                 {
-                    // Clear temporary data for filling in the next step
-                    temporaryQueue.Clear();
-
-                    // Create copy of all items in the sending queue
-                    while (this.sendingQueue.Count > 0)
+                    // Process sending queue
+                    lock (this.sendingQueueLockObject)
                     {
-                        temporaryQueue.Enqueue(this.sendingQueue.Dequeue());
-                    }
-                }
+                        // Clear temporary data for filling in the next step
+                        temporaryQueue.Clear();
 
-                if (temporaryQueue.Count > 0)
-                {
-                    IrisStream stream = new IrisStream(null);
-
-                    // Process all queue data objects
-                    foreach (byte[] d in temporaryQueue)
-                    {
-                        byte[] data = d;
-
-                        // Buffer the payload
-                        stream.Serialize(ref data);
-                    }
-
-                    byte[] payload = stream.GetBytes();
-
-                    // Check if compression is enabled
-                    if (IrisNetwork.Compression != IrisCompression.NONE)
-                    {
-                        switch (IrisNetwork.Compression)
+                        // Create copy of all items in the sending queue
+                        while (this.sendingQueue.Count > 0)
                         {
-                            case IrisCompression.GOOGLE_SNAPPY:
-
-                                long ticks = System.DateTime.Now.Ticks;
-
-                                // Compress using google snappy
-                                Snappy.Sharp.SnappyCompressor compressor = new Snappy.Sharp.SnappyCompressor();
-                                byte[] compressed = new byte[compressor.MaxCompressedLength(payload.Length)];
-                                int compressedLength = compressor.Compress(payload, 0, payload.Length, compressed);
-
-                                payload = new byte[compressedLength];
-
-                                Array.Copy(compressed, payload, payload.Length);
-
-                                long elapsedTicks = System.DateTime.Now.Ticks - ticks;
-                                float elapsedMilliseconds = (elapsedTicks * 10) * 0.000001f;
-                                // Output statistics
-                                IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "Sent out network packet with compression. Uncompressed size: " + compressed.Length + ", Compressed size: " + payload.Length + ", Benchmark (ms): " + elapsedMilliseconds);
-                                break;
+                            temporaryQueue.Enqueue(this.sendingQueue.Dequeue());
                         }
                     }
 
-                    // Send the data
-                    try
+                    if (temporaryQueue.Count > 0)
                     {
-                        this.client.Send(BitConverter.GetBytes(payload.Length));
-                        this.bytesSent += 4;
-                        this.client.Send(payload);
-                        this.bytesSent += payload.Length;
-                    }
-                    catch (SocketException e)
-                    {
-                        this.Close();
-                    }
-                }
+                        IrisStream stream = new IrisStream(null);
 
-                Thread.Sleep(THREAD_WORK_CHECK_DELAY);
+                        // Process all queue data objects
+                        foreach (byte[] d in temporaryQueue)
+                        {
+                            byte[] data = d;
+
+                            // Buffer the payload
+                            stream.Serialize(ref data);
+                        }
+
+                        byte[] payload = stream.GetBytes();
+
+                        // Check if compression is enabled
+                        if (IrisNetwork.Compression != IrisCompression.NONE)
+                        {
+                            switch (IrisNetwork.Compression)
+                            {
+                                case IrisCompression.GOOGLE_SNAPPY:
+
+                                    long ticks = System.DateTime.Now.Ticks;
+
+                                    // Compress using google snappy
+                                    Snappy.Sharp.SnappyCompressor compressor = new Snappy.Sharp.SnappyCompressor();
+                                    byte[] compressed = new byte[compressor.MaxCompressedLength(payload.Length)];
+                                    int compressedLength = compressor.Compress(payload, 0, payload.Length, compressed);
+
+                                    payload = new byte[compressedLength];
+
+                                    Array.Copy(compressed, payload, payload.Length);
+
+                                    long elapsedTicks = System.DateTime.Now.Ticks - ticks;
+                                    float elapsedMilliseconds = (elapsedTicks * 10) * 0.000001f;
+                                    // Output statistics
+                                    IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "Sent out network packet with compression. Uncompressed size: " + compressed.Length + ", Compressed size: " + payload.Length + ", Benchmark (ms): " + elapsedMilliseconds);
+                                    break;
+                            }
+                        }
+
+                        // Send the data
+                        try
+                        {
+                            this.client.Send(BitConverter.GetBytes(payload.Length));
+                            this.bytesSent += 4;
+                            this.client.Send(payload);
+                            this.bytesSent += payload.Length;
+                        }
+                        catch (SocketException e)
+                        {
+                            this.Close();
+                        }
+                    }
+
+                    Thread.Sleep(THREAD_WORK_CHECK_DELAY);
+                }
+            }
+            catch (ThreadInterruptedException e)
+            {
+
             }
 
             this.Close();
@@ -349,53 +358,60 @@ namespace IrisNetworking.Sockets
         /// <param name="result"></param>
         private void ReceiverThread()
         {
-            while (this.Connected)
+            try
             {
-                try
+                while (this.Connected)
                 {
-                    // Read packet header
-                    byte[] header = this.ReceiveReliable(4);
-
-                    // Create the packet payload length from header field
-                    int payloadLength = BitConverter.ToInt32(header, 0);
-
-                    // Get payload
-                    byte[] payload = this.ReceiveReliable(payloadLength);
-
-                    // Check if compression is enabled
-                    if (IrisNetwork.Compression != IrisCompression.NONE)
+                    try
                     {
-                        switch (IrisNetwork.Compression)
-                        {
-                            case IrisCompression.GOOGLE_SNAPPY:
-                                // Decompress using google snappy
-                                Snappy.Sharp.SnappyDecompressor decompressor = new Snappy.Sharp.SnappyDecompressor();
-                                byte[] decompressed = decompressor.Decompress(payload, 0, payload.Length);
-                                payload = decompressed;
+                        // Read packet header
+                        byte[] header = this.ReceiveReliable(4);
 
-                                break;
+                        // Create the packet payload length from header field
+                        int payloadLength = BitConverter.ToInt32(header, 0);
+
+                        // Get payload
+                        byte[] payload = this.ReceiveReliable(payloadLength);
+
+                        // Check if compression is enabled
+                        if (IrisNetwork.Compression != IrisCompression.NONE)
+                        {
+                            switch (IrisNetwork.Compression)
+                            {
+                                case IrisCompression.GOOGLE_SNAPPY:
+                                    // Decompress using google snappy
+                                    Snappy.Sharp.SnappyDecompressor decompressor = new Snappy.Sharp.SnappyDecompressor();
+                                    byte[] decompressed = decompressor.Decompress(payload, 0, payload.Length);
+                                    payload = decompressed;
+
+                                    break;
+                            }
+                        }
+
+                        // Process data
+                        // Read data from stream
+                        IrisStream stream = new IrisStream(null, payload);
+
+                        // Interpret stream data
+                        while (!stream.EndReached)
+                        {
+                            byte[] data = null;
+                            stream.Serialize(ref data);
+
+                            this.dataReceivedHandler(new PacketInformation(data, this));
                         }
                     }
-
-                    // Process data
-                    // Read data from stream
-                    IrisStream stream = new IrisStream(null, payload);
-
-                    // Interpret stream data
-                    while (!stream.EndReached)
+                    catch (SocketException e)
                     {
-                        byte[] data = null;
-                        stream.Serialize(ref data);
-
-                        this.dataReceivedHandler(new PacketInformation(data, this));
+                        this.Close();
                     }
-                   
+
                     Thread.Sleep(THREAD_WORK_CHECK_DELAY);
                 }
-                catch (SocketException e)
-                {
-                    this.Close();
-                }
+            }
+            catch (ThreadInterruptedException e)
+            {
+
             }
 
             this.Close();

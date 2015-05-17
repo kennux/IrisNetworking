@@ -44,6 +44,7 @@
     <Compile Include="Exceptions\ConnectionFailedException.cs" />
     <Compile Include="Internal\IrisClient.cs" />
     <Compile Include="Internal\IrisServer.cs" />
+    <Compile Include="Internal\Messages\ClientToServer\IrisPongMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisObjectDeletionRequest.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisInstantiationRequestMessage.cs" />
@@ -51,6 +52,8 @@
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCClearMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisViewOwnershipRequestMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisRPCExecutionMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisPingUpdateMessage.cs" />
+    <Compile Include="Internal\Messages\ServerToClient\IrisPingMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisViewOwnershipRequestRejectedMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisViewOwnerChangeMessage.cs" />
     <Compile Include="Internal\Messages\ServerToClient\IrisRPCMessage.cs" />

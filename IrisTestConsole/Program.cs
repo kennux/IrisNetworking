@@ -40,19 +40,39 @@ namespace IrisTestConsole
         /// </summary>
         private static Action<string[]> interpretingFunction = null;
 
-        public static void Main()
+        public static void Main(string[] args)
         {
-            // Init iris
-            IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
-            IrisNetwork.Multithread = true;
-            manager = new TestManager();
-
-            while (true)
+            try
             {
-                // Read console input
-                Console.Write("> ");
-                string input = Console.ReadLine();
-                Interpret(input);
+                // Init iris
+                IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
+                IrisNetwork.Multithread = true;
+                manager = new TestManager();
+
+                // Check for parameter
+                if (args.Length > 0)
+                {
+                    string command = "";
+                    for (int i = 0; i < args.Length; i++)
+                        command += args[i] + " ";
+
+                    command = command.Substring(0, command.Length - 1);
+                    Console.WriteLine("> " + command);
+                    Interpret(command);
+                }
+
+                while (true)
+                {
+                    // Read console input
+                    Console.Write("> ");
+                    string input = Console.ReadLine();
+                    Interpret(input);
+                }
+            }
+            catch (Exception e)
+            {
+                IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "Error: " + e.Message + "\r\n\r\n" + e.StackTrace);
+                Console.ReadLine();
             }
         }
 
@@ -100,7 +120,51 @@ namespace IrisTestConsole
                         }
                     }
                     else
-                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: exec []");
+                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: exec [script-name]");
+                    break;
+                case "exec_looped": // Script execution looped
+                    if (inputParts.Length == 3)
+                    {
+                        string scriptname = inputParts[1];
+                        int loopCount = int.Parse(inputParts[2]);
+
+                        for (int i = 0; i < loopCount; i++)
+                        {
+                            // Open script
+                            if (File.Exists("scripts/" + scriptname + ".script"))
+                            {
+                                // Read lines from file
+                                string[] lines = File.ReadAllLines("scripts/" + scriptname + ".script");
+
+                                foreach (string s in lines)
+                                {
+                                    Console.WriteLine("> " + s);
+                                    Interpret(s);
+                                }
+                            }
+                        }
+                    }
+                    else
+                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: exec_looped [script-name] [loopcount]");
+                    break;
+                case "sleep":
+                    if (inputParts.Length == 2)
+                    {
+                        int ms = int.Parse(inputParts[1]);
+
+                        System.Threading.Thread.Sleep(ms);
+                    }
+                    else
+                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: sleep [milliseconds]");
+                    break;
+                case "verbosity": // Verbosity setter
+                    if (inputParts.Length == 2)
+                    {
+                        // Set verbosity flag
+                        IrisNetwork.verbosity = (IrisConsole.IrisVerbosity)Enum.Parse(typeof(IrisConsole.IrisVerbosity), inputParts[1]);
+                    }
+                    else
+                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: verbosity [NONE,DEBUG,ERRORS]");
                     break;
                 default:
                     if (interpretingFunction != null)
@@ -313,6 +377,16 @@ namespace IrisTestConsole
                     case "stats":
                         IrisConsole.Log(IrisConsole.MessageType.INFO, "IrisTestConsole", "Bytes sent: " + IrisNetwork.BytesSent);
                         break;
+                    case "pings":
+                        foreach (IrisPlayer p in IrisNetwork.GetPlayers())
+                        {
+                            if (p == null)
+                                continue;
+
+                            IrisConsole.Log(IrisConsole.MessageType.INFO, "IrisTestConsole", p.Name + "\t\t\t" + p.Ping);
+                        }
+                        break;
+
                     #endregion
 
                     default:

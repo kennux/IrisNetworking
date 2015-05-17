@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net.Sockets;
 using IrisNetworking.Sockets;
+using System.Threading;
 
 namespace IrisNetworking.Internal
 {
@@ -21,11 +22,13 @@ namespace IrisNetworking.Internal
         /// Null as value means no socket connection in this slot.
         /// </summary>
         protected IrisClient[] clients;
+        private object clientsLockObject = new object();
 
         /// <summary>
         /// The player objects to the corresponding players.
         /// </summary>
         protected IrisPlayer[] players;
+        private object playersLockObject = new object();
 
         /// <summary>
         /// The iris master instance
@@ -36,6 +39,18 @@ namespace IrisNetworking.Internal
         /// Internal views.
         /// </summary>
         protected Dictionary<int, IrisView> views = new Dictionary<int, IrisView>();
+
+        /// <summary>
+        /// The ping refresh interval in milliseconds.
+        /// </summary>
+        private int pingRefreshInterval;
+
+        /// <summary>
+        /// The ping thread.
+        /// </summary>
+        private Thread pingThread;
+
+        private bool alive = true;
 
         /// <summary>
         /// Forwards IrisClientSocket.BytesSent.
@@ -52,35 +67,82 @@ namespace IrisNetworking.Internal
             }
         }
 
+        #region Ping functions
+
+        /// <summary>
+        /// Call this in the constructor of the implementing class if you want the server to send out ping packets all x milliseconds.
+        /// </summary>
+        protected void InitializePingThread(int intervalMilliseconds)
+        {
+            this.pingRefreshInterval = intervalMilliseconds;
+
+            // Start ping thread
+            this.pingThread = new Thread(() => this.PingThread());
+            this.pingThread.IsBackground = true;
+            this.pingThread.Start();
+        }
+
+
+        /// <summary>
+        /// The ping thread.
+        /// It will send out ping packets periodically.
+        /// </summary>
+        private void PingThread()
+        {
+            while (this.alive)
+            {
+                lock (this.clientsLockObject)
+                {
+                    foreach (IrisClient c in this.clients)
+                    {
+                        if (c != null && c.ClientSocket.Connected)
+                            c.StartPing();
+                    }
+                }
+
+                Thread.Sleep(this.pingRefreshInterval);
+
+                // Send ping updates
+                this.BroadcastMessage(new IrisPingUpdateMessage(this.master.GetLocalPlayer(), this.master.GetPlayers().ToArray()));
+                IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisServer", "Sent out ping updates!");
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Event handler for an incoming connection on the server socket.
         /// </summary>
         /// <param name="socket"></param>
         protected void IncomingConnection(Socket socket)
         {
-            // Try to find free slot
-            int i = 0;
-            for (; i < this.clients.Length; i++)
+            lock (this.clientsLockObject)
             {
-                if (this.clients[i] == null)
-                    break;
-            }
-
-            if (i < this.clients.Length)
-            {
-                // We got a free slot :>
-                this.master.SetPlayer(i + 1, new IrisPlayer(i + 1));
-                this.clients[i] = new IrisClient(socket, this.master.GetPlayer(i + 1), this.master, this, this.ClientDisconnected);
-            }
-            else
-            {
-                // We don't got a free slot :(
-                IrisClient tmp = new IrisClient(socket, this.master.GetPlayer(i + 1), this.master, this, delegate(IrisClient c)
+                // Try to find free slot
+                int i = 0;
+                for (; i < this.clients.Length; i++)
                 {
+                    if (this.clients[i] == null)
+                        break;
+                }
 
-                });
-                tmp.SendMessage(new IrisServerFullMessage(this.master.GetLocalPlayer()));
-                tmp.Close();
+                if (i < this.clients.Length)
+                {
+                    // We got a free slot :>
+                    this.master.SetPlayer(i + 1, new IrisPlayer(i + 1));
+                    this.clients[i] = new IrisClient(socket, this.master.GetPlayer(i + 1), this.master, this, this.ClientDisconnected);
+                }
+                else
+                {
+                    // We don't got a free slot :(
+                    /*IrisClient tmp = new IrisClient(socket, null, this.master, this, delegate(IrisClient c)
+                    {
+
+                    });
+                    tmp.SendMessage(new IrisServerFullMessage(this.master.GetLocalPlayer()));
+                    tmp.Close();*/
+                    socket.Close();
+                }
             }
         }
 
@@ -92,28 +154,34 @@ namespace IrisNetworking.Internal
         {
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisDedicatedServer", "Client disconnected from server: " + socket.ClientSocket.Socket.RemoteEndPoint + ", PlayerID = " + socket.Player.PlayerId);
 
-            int i = socket.Player.PlayerId - 1;
-            if (this.clients[i] == socket)
+            lock (this.clientsLockObject)
             {
-                // Save player instance for later
-                IrisPlayer player = this.master.GetPlayer(i + 1);
-
-                // Announce
-                if (player != null)
+                lock(this.playersLockObject)
                 {
-                    // Broadcast DC
-                    this.SendMessageToPlayers(this.master.GetPlayers(), new IrisPlayerLeftMessage(this.master.GetLocalPlayer(), player));
+                    int i = socket.Player.PlayerId - 1;
+                    if (this.clients[i] == socket)
+                    {
+                        // Save player instance for later
+                        IrisPlayer player = this.master.GetPlayer(i + 1);
 
-                    // Remove his views.
-                    List<IrisView> views = this.master.GetViews();
-                    foreach (IrisView view in views)
-                        if (view.GetOwner().PlayerId == player.PlayerId)
-                            IrisNetwork.DestroyObject(view);
+                        // Announce
+                        if (player != null)
+                        {
+                            // Broadcast DC
+                            this.SendMessageToPlayers(this.master.GetPlayers(), new IrisPlayerLeftMessage(this.master.GetLocalPlayer(), player));
+
+                            // Remove his views.
+                            List<IrisView> views = this.master.GetViews();
+                            foreach (IrisView view in views)
+                                if (view.GetOwner().PlayerId == player.PlayerId)
+                                    IrisNetwork.DestroyObject(view);
+                        }
+
+                        // Reset objects
+                        this.clients[i] = null;
+                        this.master.SetPlayer(i + 1, null);
+                    }
                 }
-
-                // Reset objects
-                this.clients[i] = null;
-                this.master.SetPlayer(i + 1, null);
             }
         }
 
@@ -124,11 +192,17 @@ namespace IrisNetworking.Internal
         /// </summary>
         public void SendMessageToPlayers(ICollection<IrisPlayer> player, IrisNetworkMessage message)
         {
-            foreach (IrisPlayer p in player)
+            lock (this.clientsLockObject)
             {
-                // Exclude 0 because 0 is ALWAYS the server.
-                if (p != null && p.PlayerId != 0)
-                    this.clients[p.PlayerId - 1].SendMessage(message);
+                lock (this.playersLockObject)
+                {
+                    foreach (IrisPlayer p in player)
+                    {
+                        // Exclude 0 because 0 is ALWAYS the server.
+                        if (p != null && p.PlayerId != 0 && this.clients[p.PlayerId - 1] != null)
+                            this.clients[p.PlayerId - 1].SendMessage(message);
+                    }
+                }
             }
         }
 
@@ -137,9 +211,15 @@ namespace IrisNetworking.Internal
         /// </summary>
         public void SendMessageToPlayer(IrisPlayer player, IrisNetworkMessage message)
         {
-            // Exclude 0 because 0 is ALWAYS the server.
-            if (player != null && player.PlayerId != 0)
-                this.clients[player.PlayerId - 1].SendMessage(message);
+            lock (this.clientsLockObject)
+            {
+                lock (this.playersLockObject)
+                {
+                    // Exclude 0 because 0 is ALWAYS the server.
+                    if (player != null && player.PlayerId != 0 && this.clients[player.PlayerId - 1] != null)
+                        this.clients[player.PlayerId - 1].SendMessage(message);
+                }
+            }
         }
 
         /// <summary>
@@ -158,9 +238,12 @@ namespace IrisNetworking.Internal
         /// </summary>
         public void Update()
         {
-            foreach (IrisClient client in this.clients)
-                if (client != null)
-                    client.Update();
+            lock (this.clientsLockObject)
+            {
+                foreach (IrisClient client in this.clients)
+                    if (client != null)
+                        client.Update();
+            }
         }
 
         /// <summary>
@@ -169,15 +252,20 @@ namespace IrisNetworking.Internal
         /// </summary>
         public void Stop()
         {
-            // Drop client connections
-            foreach (IrisClient c in this.clients)
+            lock (this.clientsLockObject)
             {
-                if (c != null)
-                    c.Close();
-            }
+                // Drop client connections
+                foreach (IrisClient c in this.clients)
+                {
+                    if (c != null)
+                        c.Close();
+                }
 
-            // Stop listening
-            this.serverSocket.Close();
+                this.alive = false;
+
+                // Stop listening
+                this.serverSocket.Close();
+            }
         }
     }
 }

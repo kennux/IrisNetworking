@@ -60,6 +60,7 @@ namespace IrisNetworking
         /// <summary>
         /// Sets the iris player for the given id.
         /// Setting a player to null means he disconnected, got kicked, what ever. null means he is removed from the game.
+        /// This means also, that the list which GetPlayers() will return should not return a null-pointer.
         /// You need to call player.SetMaster(this) in here.
         /// </summary>
         /// <param name="player"></param>

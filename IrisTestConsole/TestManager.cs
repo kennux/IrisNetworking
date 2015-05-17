@@ -15,20 +15,25 @@ namespace IrisTestConsole
         /// The players dictionary used to keep track of all currently connected players.
         /// </summary>
         private Dictionary<int, IrisPlayer> players = new Dictionary<int, IrisPlayer>();
+        private object playersLockObject = new object();
 
         /// <summary>
         /// The views dictionary used to keep track of all currently spawned views.
         /// </summary>
         private Dictionary<int, IrisView> views = new Dictionary<int, IrisView>();
+        private object viewsLockObject = new object();
 
         public void RegisterView(int viewId, IrisView view)
         {
             IrisConsole.Log(IrisConsole.MessageType.INFO, "TestManager", "Registered view " + view + " with id " + viewId);
 
-            if (views.ContainsKey(viewId))
+            lock (this.viewsLockObject)
             {
-                IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to register and already existing iris view id = " + viewId);
-                return;
+                if (views.ContainsKey(viewId))
+                {
+                    IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to register and already existing iris view id = " + viewId);
+                    return;
+                }
             }
 
             views.Add(viewId, view);
@@ -41,28 +46,37 @@ namespace IrisTestConsole
         /// <param name="viewId"></param>
         public void RemoveView(int viewId)
         {
-            if (views.ContainsKey(viewId))
-                views.Remove(viewId);
-            else
-                IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to remove non-existing view object.");
+            lock (this.viewsLockObject)
+            {
+                if (views.ContainsKey(viewId))
+                    views.Remove(viewId);
+                else
+                    IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to remove non-existing view object.");
+            }
         }
 
         public List<IrisView> GetViews()
         {
-            return new List<IrisView>(views.Values);
+            lock (this.viewsLockObject)
+            {
+                return new List<IrisView>(views.Values);
+            }
         }
 
         public IrisView FindView(int viewId)
         {
-            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "TestManager", "Tried to find view " + viewId);
-
-            if (!views.ContainsKey(viewId))
+            lock (this.viewsLockObject)
             {
-                IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to find view " + viewId + " but this view is not existing!");
-                return null;
-            }
+                IrisConsole.Log(IrisConsole.MessageType.DEBUG, "TestManager", "Tried to find view " + viewId);
 
-            return views[viewId];
+                if (!views.ContainsKey(viewId))
+                {
+                    IrisConsole.Log(IrisConsole.MessageType.ERROR, "TestManager", "Tried to find view " + viewId + " but this view is not existing!");
+                    return null;
+                }
+
+                return views[viewId];
+            }
         }
 
         /// <summary>
@@ -72,7 +86,10 @@ namespace IrisTestConsole
         /// <returns></returns>
         public IrisPlayer GetLocalPlayer()
         {
-            return this.player;
+            lock (this.playersLockObject)
+            {
+                return this.player;
+            }
         }
 
         /// <summary>
@@ -82,18 +99,32 @@ namespace IrisTestConsole
         /// <returns></returns>
         public void SetLocalPlayer(IrisPlayer player)
         {
-            this.player = player;
-            this.SetPlayer(player.PlayerId, player);
+            lock (this.playersLockObject)
+            {
+                this.player = player;
+                this.SetPlayer(player.PlayerId, player);
+            }
         }
 
         /// <summary>
         /// Gets the iris player set by SetPlayer.
+        /// Returns null if the player for the given id was not found.
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
         public IrisPlayer GetPlayer(int playerId)
         {
-            return this.players[playerId];
+            lock (this.playersLockObject)
+            {
+                try
+                {
+                    return this.players[playerId];
+                }
+                catch (KeyNotFoundException e)
+                {
+                    return null;
+                }
+            }
         }
 
         /// <summary>
@@ -103,19 +134,31 @@ namespace IrisTestConsole
         /// <returns></returns>
         public void SetPlayer(int playerId, IrisPlayer player)
         {
-            if (player != null)
-                player.SetMaster(this);
+            lock (this.playersLockObject)
+            {
+                if (player != null)
+                    player.SetMaster(this);
+                else
+                {
+                    if (this.players.ContainsKey(playerId))
+                        this.players.Remove(playerId);
+                    return;
+                }
 
-            // Set player reference
-            if (this.players.ContainsKey(playerId))
-                this.players[playerId] = player;
-            else
-                this.players.Add(playerId, player);
+                // Set player reference
+                if (this.players.ContainsKey(playerId))
+                    this.players[playerId] = player;
+                else
+                    this.players.Add(playerId, player);
+            }
         }
 
         public List<IrisPlayer> GetPlayers()
         {
-            return new List<IrisPlayer>(this.players.Values);
+            lock (this.playersLockObject)
+            {
+                return new List<IrisPlayer>(this.players.Values);
+            }
         }
 
         /// <summary>

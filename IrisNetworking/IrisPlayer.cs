@@ -29,6 +29,12 @@ namespace IrisNetworking
         public string Name;
 
         /// <summary>
+        /// Ping in milliseconds.
+        /// Will get set from the server if the ping refresh thread is running.
+        /// </summary>
+        public int Ping;
+
+        /// <summary>
         /// Is this player the master client?
         /// </summary>
         public bool isMaster
