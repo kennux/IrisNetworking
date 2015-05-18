@@ -20,20 +20,31 @@ Planned features:
 
 This engine is still in alpha-stage and not ready for productional use!
 
-Thread-safety
+Usage
 ======================
+
+How to implement?!
+----------------------
+
+You need to implement your own IrisView and IrisMaster classes.
+They represent the interface from your engine / game to iris networking.
+Also, there's a update function which should get called continously.
+
+IrisNetworking.UpdateFrame() should get called everytime you want to interpret incoming packages.
+This function will also send out a partial (on client) and a complete frame update on the server.
+So, normally you got a network update-rate of like 20 times a second, so you need to make sure your main-thread calls IrisNetworking.UpdateFrame() every 50ms.
+
+Thread-safety
+----------------------
 
 Iris Networking was developed with multithreading in mind.
 It uses synchronous sockets whose receive and send queue handlers are offloaded to seperate threads.
 
-You can set IrisNetwork.Multithread to false to prevent those threads from actually interpreting arriving data.
-If you do this, all interpretation will be done in IrisNetwork.UpdateFrame(). It is your responsibility now to take care of calling it.
-
-If you set it to true, incoming messages will get interpreted on the receiver thread which will be a unique thread for every socket.
-So you need to make sure that every base class or interface you use is implemented with thread-safety in mind.
+However, i wanted to keep thread-synchronization efforts to a minimum level, so all logic will run on the main thread.
+Multithreading will just get used to send out pings, receive data and for flushing the send buffer.
 
 Unity implementation
-======================
+----------------------
 
 The unity implementation of iris networking mainly serves the purpose of a reference implementation.
 There are some tests and examples in it that demonstrate how it works.

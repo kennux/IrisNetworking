@@ -97,6 +97,12 @@ namespace IrisNetworking.Internal
         private object packetQueueLockObject = new object();
 
         /// <summary>
+        /// Gets set to true in ClientDisconnected().
+        /// This flag is used to determine whether or not to fire the disconnectEvent in Update() on the main-thread.
+        /// </summary>
+        private bool justDisconnected = false;
+
+        /// <summary>
         /// Constrcuts an iris client with socket to ip:port.
         /// </summary>
         /// <param name="ip"></param>
@@ -165,10 +171,16 @@ namespace IrisNetworking.Internal
         /// </summary>
         public void Update()
         {
-            if (!IrisNetwork.Multithread)
-                lock (this.packetQueueLockObject)
-                    while (this.packetQueue.Count > 0)
-                        this.InterpretPacket(this.packetQueue.Dequeue());
+            if (this.justDisconnected)
+            {
+                this.disconnectEvent(this);
+                this.justDisconnected = false;
+                return;
+            }
+
+            lock (this.packetQueueLockObject)
+                while (this.packetQueue.Count > 0)
+                    this.InterpretPacket(this.packetQueue.Dequeue());
         }
 
         #region Protocol interpreters
@@ -551,7 +563,8 @@ namespace IrisNetworking.Internal
                             int id = pingUpdateMessage.playerIds[i];
 
                             IrisPlayer player = IrisNetwork.FindPlayer(id);
-                            player.Ping = pingUpdateMessage.playerPings[i];
+                            if (player != null)
+                                player.Ping = pingUpdateMessage.playerPings[i];
                         }
                     }
                     break;
@@ -568,14 +581,9 @@ namespace IrisNetworking.Internal
         /// <param name="p"></param>
         private void ReceivePacket(IrisClientSocket.PacketInformation p)
         {
-            if (IrisNetwork.Multithread)
-                this.InterpretPacket(p);
-            else
+            lock (this.packetQueueLockObject)
             {
-                lock (this.packetQueueLockObject)
-                {
-                    this.packetQueue.Enqueue(p);
-                }
+                this.packetQueue.Enqueue(p);
             }
         }
 
@@ -650,7 +658,7 @@ namespace IrisNetworking.Internal
         /// <param name="socket"></param>
         private void ClientDisconnected(IrisClientSocket socket)
         {
-            this.disconnectEvent(this);
+            this.justDisconnected = true;
         }
 
         #endregion

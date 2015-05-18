@@ -122,18 +122,6 @@ namespace IrisNetworking
         private static string localPlayerName;
 
         /// <summary>
-        /// Gets set in initialize.
-        /// If this is set to true, packet interpretation in iris client will happen on the socket reader thread.
-        /// If this is set to false, packet interpretation in iris client will happen in the UpdateFrame() call.
-        /// </summary>
-        public static bool Multithread
-        {
-            get { return multithread; }
-            set { multithread = value; }
-        }
-        private static bool multithread;
-
-        /// <summary>
         /// The iris client socket reference to the currently used client.
         /// </summary>
         private static IrisClient irisClient;
@@ -395,10 +383,7 @@ namespace IrisNetworking
             if (isMasterClient)
             {
                 // Update
-                if (!IrisNetwork.Multithread)
-                {
-                    dedicatedServer.Update();
-                }
+                dedicatedServer.Update();
 
                 // Prepare frame update packet by first collecting all view information
                 List<IrisViewUpdate> updates = new List<IrisViewUpdate>();
@@ -441,10 +426,7 @@ namespace IrisNetworking
             else
             {
                 // Update
-                if (!IrisNetwork.Multithread)
-                {
-                    irisClient.Update();
-                }
+                irisClient.Update();
 
                 // Send out partial frame updates for all views owned by ourselfs.
                 // Prepare frame update packet by first collecting all view information
