@@ -12,6 +12,7 @@ It supports the following features so far:
 - Dedicated Servers
 - Unity implementation (Still WIP)
 - View takeover
+- Latency measuring (WIP)
 
 Planned features:
 

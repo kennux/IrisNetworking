@@ -428,6 +428,9 @@ namespace IrisNetworking
                 // Update
                 irisClient.Update();
 
+                if (!irisClient.Handshaked)
+                    return;
+
                 // Send out partial frame updates for all views owned by ourselfs.
                 // Prepare frame update packet by first collecting all view information
                 List<IrisViewUpdate> updates = new List<IrisViewUpdate>();

@@ -110,6 +110,11 @@ namespace IrisNetworking.Internal
         public IrisClient(String ip, short port, IrisMaster master, Action<IrisClient> disconnect)
         {
             this.clientSocket = new IrisClientSocket(ip, port, this.ReceivePacket, this.ClientDisconnected);
+
+            // Start outgoint packets buffer.
+            // This will block sending data till the handshake was received.
+            this.clientSocket.StartTransaction();
+
             this.master = master;
 
             this.disconnectEvent = disconnect;
@@ -137,8 +142,43 @@ namespace IrisNetworking.Internal
             this.clientSocket = new IrisClientSocket(socket, this.ReceivePacket, this.ClientDisconnected);
 
             // Send handshake
+            this.clientSocket.StartTransaction();
+
+            // Send all currently joined players to our newly joined player.
+            foreach (IrisPlayer pl in this.GetOtherPlayers())
+            {
+                if (pl != this.player)
+                    this.SendMessage(new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), pl));
+            }
+
+            // Send all view informations to our newly joined player.
+            List<IrisView> views = this.master.GetViews();
+            foreach (IrisView v in views)
+            {
+                // Static views dont need to get instantiated
+                // Send instantiation message
+                if (!v.IsStatic())
+                    this.SendMessage(new IrisInstantiationMessage(this.master.GetLocalPlayer(), v.GetObjectName(), v.GetViewId(), v.GetOwner(), v.GetInitialState()));
+
+                // Get buffered RPCS
+                List<RPCBufferInformation> rpcBuffer = v.GetBufferedRPCs();
+                foreach (RPCBufferInformation rpc in rpcBuffer)
+                {
+                    IrisNetwork.RPC(v, new IrisPlayer[] { this.player }, rpc.Method, rpc.Args, rpc.Sender);
+                }
+            }
+
+            // Send last frame update
+            if (IrisFrameUpdateMessage.LastFrameUpdate != null)
+                this.SendMessage(IrisFrameUpdateMessage.LastFrameUpdate);
+
+            // Send ping packet
+            this.StartPing();
+
             IrisServerHandshakeMessage handshake = new IrisServerHandshakeMessage(this.master.GetLocalPlayer(), player);
             this.SendMessage(handshake);
+            this.clientSocket.StopTransaction();
+
 
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Server sent handshake packet for new player " + handshake.player.PlayerId);
         }
@@ -198,7 +238,6 @@ namespace IrisNetworking.Internal
                 // Client -> Server handshake, initial packet.
                 case 0:
                     // Deserialize the client handshake answer
-                    this.clientSocket.StartTransaction();
                     IrisClientHandshakeMessage handshake = new IrisClientHandshakeMessage(null, null);
                     handshake.Serialize(stream);
 
@@ -212,43 +251,9 @@ namespace IrisNetworking.Internal
                     IrisPlayerJoinedMessage joinedMessage = new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), this.player);
                     this.serverMaster.SendMessageToPlayers(players, joinedMessage);
 
-                    // Send all currently joined players to our newly joined player.
-                    foreach (IrisPlayer pl in players)
-                    {
-                        if (pl != this.player)
-                            this.SendMessage(new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), pl));
-                    }
-
-                    // Send all view informations to our newly joined player.
-                    List<IrisView> views = this.master.GetViews();
-                    foreach (IrisView v in views)
-                    {
-                        // Get buffered RPCS
-                        List<RPCBufferInformation> rpcBuffer = v.GetBufferedRPCs();
-                        foreach (RPCBufferInformation rpc in rpcBuffer)
-                        {
-                            IrisNetwork.RPC(v, new IrisPlayer[] { this.player }, rpc.Method, rpc.Args, rpc.Sender);
-                        }
-
-                        // Static views dont need to get instantiated
-                        if (v.IsStatic())
-                            continue;
-
-                        // Send instantiation message
-                        this.SendMessage(new IrisInstantiationMessage(this.master.GetLocalPlayer(), v.GetObjectName(), v.GetViewId(), v.GetOwner(), v.GetInitialState()));
-                    }
-
-                    // Send last frame update
-                    if (IrisFrameUpdateMessage.LastFrameUpdate != null)
-                        this.SendMessage(IrisFrameUpdateMessage.LastFrameUpdate);
-
-                    // Send ping packet
-                    this.StartPing();
-
                     // Add to master
                     this.master.SetPlayer(this.player.PlayerId, this.player);
                     this.handshaked = true;
-                    this.clientSocket.StopTransaction();
                     break;
                 // Instantitation request
                 case 1:
@@ -292,17 +297,20 @@ namespace IrisNetworking.Internal
                         foreach (IrisViewUpdate u in updateMessage.ViewUpdates)
                         {
                             IrisView view = this.master.FindView(u.viewId);
-                            // Validity check
-                            if (view.GetOwner() != this.Player)
-                            {
-                                IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClient", "Server got view update from a client who doesnt own the view! Owner: " + view.GetOwner() + ", Sender: " + this.Player);
-                                continue;
-                            }
 
                             if (view == null)
                             {
                                 // This should actually not happen
-                                IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClient", "Got view update in partial frame update for not existing view ?! Dropped it.");
+                                // But it is happening...
+                                // TODO: Find out why the fuck this is happening.
+                                // IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClient", "Got view update in partial frame update for not existing view ?! Dropped it.");
+                                continue;
+                            }
+
+                            // Validity check
+                            if (view.GetOwner() != this.Player)
+                            {
+                                IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClient", "Server got view update from a client who doesnt own the view! Owner: " + view.GetOwner() + ", Sender: " + this.Player);
                                 continue;
                             }
 
@@ -419,6 +427,10 @@ namespace IrisNetworking.Internal
 
                             // Write client handshake
                             this.SendMessage(new IrisClientHandshakeMessage(handshake.player, IrisNetwork.LocalPlayerName));
+
+                            // Start flush the transaction buffer started in the constructor.
+                            // This client is now handshaked so, allowed to send data out.
+                            this.clientSocket.StopTransaction();
                         }
                     }
                     break;
@@ -594,7 +606,7 @@ namespace IrisNetworking.Internal
         private void InterpretPacket(IrisClientSocket.PacketInformation p)
         {
             // Validity check
-            if (p.payload.Length < 1)
+            if (p.payload.Length < 1 || !this.clientSocket.Connected)
                 return;
 
             // Get packet header
