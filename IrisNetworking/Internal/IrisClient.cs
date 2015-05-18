@@ -174,6 +174,8 @@ namespace IrisNetworking.Internal
             if (this.justDisconnected)
             {
                 this.disconnectEvent(this);
+                this.justDisconnected = false;
+                return;
             }
 
             lock (this.packetQueueLockObject)
@@ -561,7 +563,8 @@ namespace IrisNetworking.Internal
                             int id = pingUpdateMessage.playerIds[i];
 
                             IrisPlayer player = IrisNetwork.FindPlayer(id);
-                            player.Ping = pingUpdateMessage.playerPings[i];
+                            if (player != null)
+                                player.Ping = pingUpdateMessage.playerPings[i];
                         }
                     }
                     break;
