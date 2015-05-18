@@ -295,7 +295,7 @@ namespace IrisNetworking
         {
             if (!Initialized)
                 throw new NotInitializedException("Cant connect without being initialized");
-            // Here it is masterInstance because we'll always want a client master here!
+
 			irisClient = new IrisClient(ip, port, master, delegate(IrisClient client)
             {
                 Disconnect();

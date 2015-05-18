@@ -47,7 +47,6 @@ namespace IrisTestConsole
             {
                 // Init iris
                 IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
-                manager = new TestManager();
 
                 // Check for parameter
                 if (args.Length > 0)
@@ -100,6 +99,14 @@ namespace IrisTestConsole
                     }
                     else
                         IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: shell [SHELL - highlevel/lowlevel]");
+                    break;
+                case "logfile": // Change logfile
+                    if (inputParts.Length == 2)
+                    {
+                        IrisConsole.OpenLogfile(inputParts[1]);
+                    }
+                    else
+                        IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "USAGE: logfile [name]");
                     break;
                 case "exec": // Script execution
                     if (inputParts.Length == 2)
@@ -244,6 +251,7 @@ namespace IrisTestConsole
                     #region Initialization and Update
 
                     case "initialize": // Initializes Iris
+                        manager = new TestManager();
                         IrisNetwork.Initialize(manager);
                         break;
                     case "update":

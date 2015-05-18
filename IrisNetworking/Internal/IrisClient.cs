@@ -103,6 +103,11 @@ namespace IrisNetworking.Internal
         private bool justDisconnected = false;
 
         /// <summary>
+        /// Server-side flag used to indicate whether the handshake packet was sent or not.
+        /// </summary>
+        private bool handshakeSent = false;
+
+        /// <summary>
         /// Constrcuts an iris client with socket to ip:port.
         /// </summary>
         /// <param name="ip"></param>
@@ -110,15 +115,30 @@ namespace IrisNetworking.Internal
         public IrisClient(String ip, short port, IrisMaster master, Action<IrisClient> disconnect)
         {
             this.clientSocket = new IrisClientSocket(ip, port, this.ReceivePacket, this.ClientDisconnected);
-
-            // Start outgoint packets buffer.
-            // This will block sending data till the handshake was received.
             this.clientSocket.StartTransaction();
 
             this.master = master;
 
             this.disconnectEvent = disconnect;
             this.isServerClient = false;
+
+            int passedMilliseconds = 0;
+
+            // Wait for handshake
+            while (this.ClientSocket.Connected && !this.Handshaked)
+            {
+                if (passedMilliseconds >= 1000)
+                {
+                    IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisNetwork", "Handshake timeout passed! Disconnecting!");
+                    this.Close();
+                    return;
+                }
+
+                this.Update();
+
+                System.Threading.Thread.Sleep(5);
+                passedMilliseconds += 5;
+            }
         }
 
         /// <summary>
@@ -137,50 +157,10 @@ namespace IrisNetworking.Internal
             this.serverMaster = dedicatedServerMaster;
             this.player = player;
             this.isServerClient = true;
+            this.handshakeSent = false;
 
             // Create client socket
             this.clientSocket = new IrisClientSocket(socket, this.ReceivePacket, this.ClientDisconnected);
-
-            // Send handshake
-            this.clientSocket.StartTransaction();
-
-            // Send all currently joined players to our newly joined player.
-            foreach (IrisPlayer pl in this.GetOtherPlayers())
-            {
-                if (pl != this.player)
-                    this.SendMessage(new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), pl));
-            }
-
-            // Send all view informations to our newly joined player.
-            List<IrisView> views = this.master.GetViews();
-            foreach (IrisView v in views)
-            {
-                // Static views dont need to get instantiated
-                // Send instantiation message
-                if (!v.IsStatic())
-                    this.SendMessage(new IrisInstantiationMessage(this.master.GetLocalPlayer(), v.GetObjectName(), v.GetViewId(), v.GetOwner(), v.GetInitialState()));
-
-                // Get buffered RPCS
-                List<RPCBufferInformation> rpcBuffer = v.GetBufferedRPCs();
-                foreach (RPCBufferInformation rpc in rpcBuffer)
-                {
-                    IrisNetwork.RPC(v, new IrisPlayer[] { this.player }, rpc.Method, rpc.Args, rpc.Sender);
-                }
-            }
-
-            // Send last frame update
-            if (IrisFrameUpdateMessage.LastFrameUpdate != null)
-                this.SendMessage(IrisFrameUpdateMessage.LastFrameUpdate);
-
-            // Send ping packet
-            this.StartPing();
-
-            IrisServerHandshakeMessage handshake = new IrisServerHandshakeMessage(this.master.GetLocalPlayer(), player);
-            this.SendMessage(handshake);
-            this.clientSocket.StopTransaction();
-
-
-            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Server sent handshake packet for new player " + handshake.player.PlayerId);
         }
 
         /// <summary>
@@ -218,6 +198,49 @@ namespace IrisNetworking.Internal
                 return;
             }
 
+            // Perform server handshaking if needed
+            if (this.isServerClient && !this.handshakeSent)
+            {
+                // Send handshake
+                this.clientSocket.StartTransaction();
+
+                IrisServerHandshakeMessage handshake = new IrisServerHandshakeMessage(this.master.GetLocalPlayer(), player);
+                this.SendMessage(handshake);
+
+                // Send all currently joined players to our newly joined player.
+                foreach (IrisPlayer pl in this.GetOtherPlayers())
+                {
+                    if (pl != this.player)
+                        this.SendMessage(new IrisPlayerJoinedMessage(this.master.GetLocalPlayer(), pl));
+                }
+
+                // Send all view informations to our newly joined player.
+                List<IrisView> views = this.master.GetViews();
+                foreach (IrisView v in views)
+                {
+                    // Static views dont need to get instantiated
+                    // Send instantiation message
+                    if (!v.IsStatic())
+                        this.SendMessage(new IrisInstantiationMessage(this.master.GetLocalPlayer(), v.GetObjectName(), v.GetViewId(), v.GetOwner(), v.GetInitialState()));
+
+                    // Get buffered RPCS
+                    List<RPCBufferInformation> rpcBuffer = v.GetBufferedRPCs();
+                    foreach (RPCBufferInformation rpc in rpcBuffer)
+                    {
+                        IrisNetwork.RPC(v, new IrisPlayer[] { this.player }, rpc.Method, rpc.Args, rpc.Sender);
+                    }
+                }
+
+                // Send ping packet
+                this.StartPing();
+
+                this.clientSocket.StopTransaction();
+
+                IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Server sent handshake packet for new player " + handshake.player.PlayerId);
+
+                this.handshakeSent = true;
+            }
+
             lock (this.packetQueueLockObject)
                 while (this.packetQueue.Count > 0)
                     this.InterpretPacket(this.packetQueue.Dequeue());
@@ -232,6 +255,10 @@ namespace IrisNetworking.Internal
         /// <param name="header"></param>
         private void ClientToServerProtocol(IrisStream stream, byte header)
         {
+            // Do not accept any packets till the handshake got received!
+            if (!this.Handshaked && header != 0)
+                return;
+
             // Client -> Server input protocol
             switch (header)
             {
@@ -254,6 +281,7 @@ namespace IrisNetworking.Internal
                     // Add to master
                     this.master.SetPlayer(this.player.PlayerId, this.player);
                     this.handshaked = true;
+
                     break;
                 // Instantitation request
                 case 1:
@@ -407,6 +435,10 @@ namespace IrisNetworking.Internal
         /// <param name="header"></param>
         private void ServerToClientProtocol(IrisStream stream, byte header)
         {
+            // Do not accept any packets till the handshake got received!
+            if (!this.Handshaked && header != 0)
+                return;
+
             // Server -> Client input protocol
             // This handles messages from the server to the client
             switch (header)
@@ -623,7 +655,7 @@ namespace IrisNetworking.Internal
             {
                 this.ClientToServerProtocol(stream, header);
             }
-            else
+            else if (!this.isServerClient)
             {
                 this.ServerToClientProtocol(stream, header);
             }
