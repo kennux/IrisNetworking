@@ -5,6 +5,7 @@ using IrisNetworking.Internal;
 using IrisNetworking.Sockets;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading;
 
 namespace IrisTestConsole
 {
@@ -46,7 +47,6 @@ namespace IrisTestConsole
             {
                 // Init iris
                 IrisNetwork.verbosity = IrisConsole.IrisVerbosity.DEBUG;
-                IrisNetwork.Multithread = true;
                 manager = new TestManager();
 
                 // Check for parameter
@@ -178,6 +178,11 @@ namespace IrisTestConsole
         #endregion
 
         #region High level test console
+
+        /// <summary>
+        /// The update thread of the high level api
+        /// </summary>
+        private static Thread updateThread;
 
         /// <summary>
         /// The high level test console.
@@ -389,6 +394,23 @@ namespace IrisTestConsole
 
                     #endregion
 
+                        // Runs an update loop thread
+                    case "update_loop":
+                        {
+                            if (updateThread != null)
+                                updateThread.Abort();
+                            updateThread = new Thread(() =>
+                            {
+                                while (true)
+                                {
+                                    IrisNetwork.UpdateFrame();
+
+                                    Thread.Sleep(10);
+                                }
+                            });
+                            updateThread.Start();
+                        }
+                        break;
                     default:
                         IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisTestConsole", "Command unknown!");
                         break;
