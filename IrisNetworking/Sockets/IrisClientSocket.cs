@@ -70,6 +70,18 @@ namespace IrisNetworking.Sockets
         /// </summary>
         private List<byte[]> messageBuffer = null;
 
+        /// <summary>
+        /// This message buffer is used in SendRaw(byte[]) to write messages if the socket is currently in buffering mode by another thread.
+        /// Those messages will get flushed in this.StopTransaction().
+        /// </summary>
+        private List<byte[]> temporaryMessageBuffer = null;
+
+        /// <summary>
+        /// This object gets used for a monitor while a socket is in packet buffering mode.
+        /// See this.StartBuffering().
+        /// </summary>
+        private object bufferLockObject = new object();
+
         #region Construction functions
 
         /// <summary>
@@ -146,6 +158,14 @@ namespace IrisNetworking.Sockets
         /// <param name="data"></param>
         public void SendRaw(byte[] data)
         {
+            // If buffering is active, try enter the buffer lock object monitor
+            // and if you can't enter, write the message to a temporary buffer.
+            if (this.messageBuffer != null && !Monitor.TryEnter(this.bufferLockObject))
+            {
+                this.temporaryMessageBuffer.Add(data);
+                return;
+            }
+
             if (this.messageBuffer != null)
             {
                 // Buffering active
@@ -191,24 +211,31 @@ namespace IrisNetworking.Sockets
         #region Buffering
 
         /// <summary>
-        /// This can get used to start message sending buffering.
+        /// This can get used to start a message transaction.
         /// If this is enabled, messages submitted to SendMessage() will get saved in an internal buffer.
-        /// This buffer will get flushed after calling StopBuffering().
+        /// The transaction buffer will get flushed after calling StopTransaction().
+        /// 
+        /// Also additionally to the buffer a monitor will get entered with the current thread to prevent other threads from writing to the sending queue.
+        /// This monitor gets exited in StopTransaction().
         /// </summary>
-        public void StartBuffering()
+        public void StartTransaction()
         {
             // If currently buffered, do noting
             if (this.messageBuffer != null)
                 return;
 
+            // Start the buffering lock
+            Monitor.Enter(this.bufferLockObject);
+
             // Init message buffer
             this.messageBuffer = new List<byte[]>();
+            this.temporaryMessageBuffer = new List<byte[]>();
         }
 
         /// <summary>
-        /// Stops the buffering started in StartBuffering().
+        /// Stops the transaction started in this.StartTransaction().
         /// </summary>
-        public void StopBuffering()
+        public void StopTransaction()
         {
             lock (this.sendingQueueLockObject)
             {
@@ -221,8 +248,16 @@ namespace IrisNetworking.Sockets
                     this.sendingQueue.Enqueue(d);
                 }
 
+                foreach (byte[] d in this.temporaryMessageBuffer)
+                {
+                    this.sendingQueue.Enqueue(d);
+                }
+
                 // Buffering done
                 this.messageBuffer = null;
+
+                // Stop the buffering lock
+                Monitor.Exit(this.bufferLockObject);
             }
         }
 

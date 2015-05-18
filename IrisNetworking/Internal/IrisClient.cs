@@ -186,7 +186,7 @@ namespace IrisNetworking.Internal
                 // Client -> Server handshake, initial packet.
                 case 0:
                     // Deserialize the client handshake answer
-                    this.clientSocket.StartBuffering();
+                    this.clientSocket.StartTransaction();
                     IrisClientHandshakeMessage handshake = new IrisClientHandshakeMessage(null, null);
                     handshake.Serialize(stream);
 
@@ -236,7 +236,7 @@ namespace IrisNetworking.Internal
                     // Add to master
                     this.master.SetPlayer(this.player.PlayerId, this.player);
                     this.handshaked = true;
-                    this.clientSocket.StopBuffering();
+                    this.clientSocket.StopTransaction();
                     break;
                 // Instantitation request
                 case 1:
