@@ -101,8 +101,6 @@ namespace IrisNetworking.Sockets
         public void Close()
         {
 			this.isRunning = false;
-			this.listenerThread.Interrupt ();
-			this.listenerThread.Abort ();
             this.server.Close();
         }
 

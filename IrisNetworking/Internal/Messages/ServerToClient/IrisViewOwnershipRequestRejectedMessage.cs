@@ -10,7 +10,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 9
     /// </summary>
-    class IrisViewOwnershipRequestRejectedMessage : IrisServerToClientMessage
+    public class IrisViewOwnershipRequestRejectedMessage : IrisServerToClientMessage
 	{
         /// <summary>
         /// The view whose owner will change.

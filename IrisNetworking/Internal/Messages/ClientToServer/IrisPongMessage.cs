@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 7
     /// </summary>
-    class IrisPongMessage : IrisNetworkMessage
+    public class IrisPongMessage : IrisNetworkMessage
     {
         public IrisPongMessage(IrisPlayer sender)
             : base(sender)

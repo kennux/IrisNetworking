@@ -10,7 +10,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 10
     /// </summary>
-    class IrisPingMessage : IrisServerToClientMessage
+    public class IrisPingMessage : IrisServerToClientMessage
 	{
         public IrisPingMessage(IrisPlayer sender)
             : base(sender)

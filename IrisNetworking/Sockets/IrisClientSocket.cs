@@ -281,7 +281,7 @@ namespace IrisNetworking.Sockets
                 // Temporary queue for 
                 Queue<byte[]> temporaryQueue = new Queue<byte[]>();
 
-                while (this.Connected)
+                while (this.Connected && !this.closed)
                 {
                     // Process sending queue
                     lock (this.sendingQueueLockObject)
@@ -365,7 +365,7 @@ namespace IrisNetworking.Sockets
         /// <summary>
         /// Receives data till the given count of bytes is received.
         /// </summary>
-        private byte[] ReceiveReliable(int count)
+        protected byte[] ReceiveReliable(int count)
         {
             System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
             int bytesReceived = 0;
@@ -395,7 +395,7 @@ namespace IrisNetworking.Sockets
         {
             try
             {
-                while (this.Connected)
+                while (this.Connected && !this.closed)
                 {
                     try
                     {
@@ -467,11 +467,6 @@ namespace IrisNetworking.Sockets
             {
                 this.closed = true;
 				this.disconnectHandler(this);
-				
-				this.receivingThread.Interrupt ();
-				this.sendingThread.Interrupt ();
-				this.receivingThread.Abort ();
-				this.sendingThread.Abort ();
 
                 if (this.Connected)
                     this.client.Close();

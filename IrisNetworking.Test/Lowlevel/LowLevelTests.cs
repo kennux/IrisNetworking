@@ -15,15 +15,31 @@ namespace IrisNetworking.Test
     public class LowLevelTests
     {
         [TestMethod]
-        public void TestLowLevelSocketConnectDisconnect()
+        public void TestLowLevelSockets()
         {
             bool connectionAccepted = false;
+            bool gotData = false;
+            bool disconnected = false;
+
+            // Create server socket
             IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
             {
                 connectionAccepted = true;
+                IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
+                {
+                    // Get the 1 from the packet information length
+                    if (pi.payload[0] == 1)
+                        gotData = true;
+
+                }, (sck) =>
+                {
+                    disconnected = true;
+                });
+
                 System.Threading.Thread.Sleep(1000);
             });
 
+            // Create client socket and try connection
             IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
             {
 
@@ -32,10 +48,24 @@ namespace IrisNetworking.Test
 
             });
 
-            System.Threading.Thread.Sleep(10);
+            // Send test data
+            clientSocket.SendRaw(new byte[] { 1 });
 
-            Assert.IsTrue(clientSocket.Connected);
+            // Wait till the server processed the requests
+            System.Threading.Thread.Sleep(50);
+
+            // Save connection state and close sockets
+            bool wasConnected = clientSocket.Connected;
+            serverSocket.Close();
+            clientSocket.Close();
+
+            // Wait till the server processed the disconnect
+            System.Threading.Thread.Sleep(50);
+
+            Assert.IsTrue(wasConnected);
             Assert.IsTrue(connectionAccepted);
+            Assert.IsTrue(gotData);
+            Assert.IsTrue(disconnected);
         }
     }
 }

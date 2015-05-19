@@ -176,7 +176,7 @@ namespace IrisNetworking.Internal
         /// Never use this in combination with the High-Level Game networking api or you'll fuck everything up!
         /// </summary>
         /// <param name="message"></param>
-        public void SendMessage(IrisNetworkMessage message)
+        public virtual void SendMessage(IrisNetworkMessage message)
         {
             IrisStream stream = new IrisStream(this.master);
             byte id = message.GetPacketId();
@@ -253,7 +253,7 @@ namespace IrisNetworking.Internal
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="header"></param>
-        private void ClientToServerProtocol(IrisStream stream, byte header)
+        protected virtual void ClientToServerProtocol(IrisStream stream, byte header)
         {
             // Do not accept any packets till the handshake got received!
             if (!this.Handshaked && header != 0)
@@ -433,7 +433,7 @@ namespace IrisNetworking.Internal
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="header"></param>
-        private void ServerToClientProtocol(IrisStream stream, byte header)
+        protected virtual void ServerToClientProtocol(IrisStream stream, byte header)
         {
             // Do not accept any packets till the handshake got received!
             if (!this.Handshaked && header != 0)
@@ -635,7 +635,7 @@ namespace IrisNetworking.Internal
         /// Packet interpretation handler.
         /// </summary>
         /// <param name="p"></param>
-        private void InterpretPacket(IrisClientSocket.PacketInformation p)
+        protected virtual void InterpretPacket(IrisClientSocket.PacketInformation p)
         {
             // Validity check
             if (p.payload.Length < 1 || !this.clientSocket.Connected)

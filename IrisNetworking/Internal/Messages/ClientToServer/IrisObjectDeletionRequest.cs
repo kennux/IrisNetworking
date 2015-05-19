@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 6
     /// </summary>
-    class IrisObjectDeletionRequest : IrisNetworkMessage
+    public class IrisObjectDeletionRequest : IrisNetworkMessage
     {
         /// <summary>
         /// The id of the object we want to delete.

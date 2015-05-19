@@ -50,9 +50,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Highlevel\ConnectionTest.cs" />
+    <Compile Include="Highlevel\HighLevelTest.cs" />
+    <Compile Include="IrisClientTestMessageSequence.cs" />
+    <Compile Include="IrisTestClient.cs" />
     <Compile Include="Lowlevel\LowLevelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="TestIrisView.cs" />
     <Compile Include="TestManager.cs" />
   </ItemGroup>

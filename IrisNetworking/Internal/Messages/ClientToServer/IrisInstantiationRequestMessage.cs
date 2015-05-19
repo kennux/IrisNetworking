@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 1
     /// </summary>
-    class IrisInstantiationRequestMessage : IrisNetworkMessage
+    public class IrisInstantiationRequestMessage : IrisNetworkMessage
     {
         /// <summary>
         /// The name of the object this message wants to instantiate.

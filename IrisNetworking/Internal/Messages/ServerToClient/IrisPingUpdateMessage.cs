@@ -11,7 +11,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 11
     /// </summary>
-    class IrisPingUpdateMessage : IrisServerToClientMessage
+    public class IrisPingUpdateMessage : IrisServerToClientMessage
 	{
         public int[] playerIds;
 

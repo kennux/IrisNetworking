@@ -12,7 +12,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 3
     /// </summary>
-    class IrisPartialFrameUpdateMessage : IrisNetworkMessage
+    public class IrisPartialFrameUpdateMessage : IrisNetworkMessage
     {
         public IrisViewUpdate[] ViewUpdates
         {

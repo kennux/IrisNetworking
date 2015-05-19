@@ -10,7 +10,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 6
     /// </summary>
-    class IrisViewOwnershipRequestMessage : IrisNetworkMessage
+    public class IrisViewOwnershipRequestMessage : IrisNetworkMessage
     {
         public IrisView View;
 

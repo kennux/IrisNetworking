@@ -8,7 +8,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 4
     /// </summary>
-    class IrisRPCClearMessage : IrisServerToClientMessage
+    public class IrisRPCClearMessage : IrisServerToClientMessage
     {
         public IrisView View;
 

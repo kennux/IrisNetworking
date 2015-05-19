@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 0
     /// </summary>
-    class IrisClientHandshakeMessage : IrisNetworkMessage
+    public class IrisClientHandshakeMessage : IrisNetworkMessage
     {
         /// <summary>
         /// The player which will get assigned to the recepient of this handshake message.
