@@ -6,16 +6,13 @@ namespace IrisNetworking.Internal
 {
     /// <summary>
     /// 
-    /// PacketID = 4
+    /// PacketID = 5
     /// </summary>
-    class IrisRPCClearMessage : IrisServerToClientMessage
+    public class IrisRPCClearMessage : IrisNetworkMessage
     {
         public IrisView View;
 
-        /// <summary>
-        /// Used for compression and encryption (TODO).
-        /// </summary>
-        private IrisMaster master;
+        public IrisRPCClearMessage() { }
 
         public IrisRPCClearMessage(IrisPlayer sender, IrisView view)
             : base(sender)
@@ -30,8 +27,6 @@ namespace IrisNetworking.Internal
 
         public override void Serialize(IrisStream stream)
         {
-            base.Serialize(stream);
-
             if (stream.IsWriting)
             {
                 int viewId = this.View.GetViewId();

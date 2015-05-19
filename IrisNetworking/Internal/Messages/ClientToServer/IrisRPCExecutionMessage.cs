@@ -8,7 +8,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 4
     /// </summary>
-    class IrisRPCExecutionMessage : IrisServerToClientMessage
+    public class IrisRPCExecutionMessage : IrisNetworkMessage
     {
         public IrisView View;
 
@@ -36,6 +36,8 @@ namespace IrisNetworking.Internal
         /// Used for compression and encryption (TODO).
         /// </summary>
         private IrisMaster master;
+
+        public IrisRPCExecutionMessage() { }
 
         public IrisRPCExecutionMessage(IrisPlayer sender, IrisView view, string method, object[] args, IrisPlayer[] targets)
             : base(sender)
@@ -66,8 +68,6 @@ namespace IrisNetworking.Internal
 
         public override void Serialize(IrisStream stream)
         {
-            base.Serialize(stream);
-
             if (stream.IsWriting)
             {
                 int viewId = this.View.GetViewId();

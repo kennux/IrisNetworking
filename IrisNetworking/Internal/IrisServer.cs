@@ -21,7 +21,7 @@ namespace IrisNetworking.Internal
         /// All client sockets which are currently connected to the server.
         /// Null as value means no socket connection in this slot.
         /// </summary>
-        protected IrisClient[] clients;
+        protected IrisDedicatedClient[] clients;
         private object clientsLockObject = new object();
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace IrisNetworking.Internal
             get
             {
                 int bytesSent = 0;
-                foreach (IrisClient c in clients)
+                foreach (IrisDedicatedClient c in clients)
                     if (c != null && c.ClientSocket.Connected)
                         bytesSent += c.BytesSent;
                 return bytesSent;
@@ -93,7 +93,7 @@ namespace IrisNetworking.Internal
             {
                 lock (this.clientsLockObject)
                 {
-                    foreach (IrisClient c in this.clients)
+                    foreach (IrisDedicatedClient c in this.clients)
                     {
                         if (c != null && c.ClientSocket.Connected)
                             c.StartPing();
@@ -130,7 +130,7 @@ namespace IrisNetworking.Internal
                 {
                     // We got a free slot :>
                     this.master.SetPlayer(i + 1, new IrisPlayer(i + 1));
-                    this.clients[i] = new IrisClient(socket, this.master.GetPlayer(i + 1), this.master, this, this.ClientDisconnected);
+                    this.clients[i] = new IrisDedicatedClient(socket, this.master.GetPlayer(i + 1), this.master, this, this.ClientDisconnected);
                 }
                 else
                 {
@@ -150,7 +150,7 @@ namespace IrisNetworking.Internal
         /// Gets called if a client disconnects from the server.
         /// </summary>
         /// <param name="socket"></param>
-        protected void ClientDisconnected(IrisClient socket)
+        protected void ClientDisconnected(IrisDedicatedClient socket)
         {
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisDedicatedServer", "Client disconnected from server: " + socket.ClientSocket.Socket.RemoteEndPoint + ", PlayerID = " + socket.Player.PlayerId);
 
@@ -240,7 +240,7 @@ namespace IrisNetworking.Internal
         {
             lock (this.clientsLockObject)
             {
-                foreach (IrisClient client in this.clients)
+                foreach (IrisDedicatedClient client in this.clients)
                     if (client != null)
                         client.Update();
             }
@@ -255,7 +255,7 @@ namespace IrisNetworking.Internal
             lock (this.clientsLockObject)
             {
                 // Drop client connections
-                foreach (IrisClient c in this.clients)
+                foreach (IrisDedicatedClient c in this.clients)
                 {
                     if (c != null)
                         c.Close();

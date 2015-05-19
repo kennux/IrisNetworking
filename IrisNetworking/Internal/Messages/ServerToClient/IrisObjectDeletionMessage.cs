@@ -9,12 +9,14 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 5
     /// </summary>
-    class IrisObjectDeletionMessage : IrisServerToClientMessage
+    public class IrisObjectDeletionMessage : IrisServerToClientMessage
     {
         /// <summary>
         /// The id of the object we want to delete.
         /// </summary>
         public int viewId;
+
+        public IrisObjectDeletionMessage() { }
 
         public IrisObjectDeletionMessage(IrisPlayer sender, int viewId)
             : base(sender)

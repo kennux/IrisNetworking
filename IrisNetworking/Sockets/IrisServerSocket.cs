@@ -86,8 +86,16 @@ namespace IrisNetworking.Sockets
         {
             while (this.isRunning)
             {
-                Socket socket = this.server.Accept();
-                this.acceptHandler(socket);
+                try
+                {
+                    Socket socket = this.server.Accept();
+                    this.acceptHandler(socket);
+                }
+                catch (SocketException e)
+                {
+                    this.Close();
+                    return;
+                }
             }
         }
 
@@ -101,8 +109,6 @@ namespace IrisNetworking.Sockets
         public void Close()
         {
 			this.isRunning = false;
-			this.listenerThread.Interrupt ();
-			this.listenerThread.Abort ();
             this.server.Close();
         }
 

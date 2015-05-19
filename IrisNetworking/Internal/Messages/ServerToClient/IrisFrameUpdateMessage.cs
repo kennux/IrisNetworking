@@ -12,7 +12,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 6
     /// </summary>
-    class IrisFrameUpdateMessage : IrisServerToClientMessage
+    public class IrisFrameUpdateMessage : IrisServerToClientMessage
 	{
 		/// <summary>
 		/// Gets the last frame update sent.
@@ -39,6 +39,8 @@ namespace IrisNetworking.Internal
         /// Used for compression and encryption (TODO).
         /// </summary>
         private IrisMaster master;
+
+        public IrisFrameUpdateMessage() { }
 
         public IrisFrameUpdateMessage(IrisPlayer sender, IrisViewUpdate[] viewUpdates, IrisMaster master)
             : base(sender)

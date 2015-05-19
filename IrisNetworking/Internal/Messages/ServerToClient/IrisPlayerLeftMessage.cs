@@ -13,6 +13,8 @@ namespace IrisNetworking.Internal
     {
         public IrisPlayer playerLeft;
 
+        public IrisPlayerLeftMessage() { }
+
         public IrisPlayerLeftMessage(IrisPlayer sender, IrisPlayer playerLeft) : base(sender)
         {
             this.playerLeft = playerLeft;

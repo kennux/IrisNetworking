@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 1
     /// </summary>
-    class IrisInstantiationMessage : IrisServerToClientMessage
+    public class IrisInstantiationMessage : IrisServerToClientMessage
     {
         /// <summary>
         /// The name of the object this message wants to instantiate.
@@ -30,6 +30,8 @@ namespace IrisNetworking.Internal
         /// The initial state of the object this message wants to instantiate.
         /// </summary>
         public byte[] initialState;
+
+        public IrisInstantiationMessage() { }
 
         public IrisInstantiationMessage(IrisPlayer sender, string objectName, int viewId, IrisPlayer owner, byte[] initialState)
             : base(sender)

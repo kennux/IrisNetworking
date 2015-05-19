@@ -12,9 +12,9 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 7
     /// </summary>
-    class IrisRPCMessage : IrisServerToClientMessage
+    public class IrisRPCMessage : IrisServerToClientMessage
     {
-        public IrisView View;
+        public int viewId;
 
         public string Method;
 
@@ -25,10 +25,12 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
-        public IrisRPCMessage(IrisPlayer sender, IrisView view, string method, object[] args)
+        public IrisRPCMessage() { }
+
+        public IrisRPCMessage(IrisPlayer sender, int viewId, string method, object[] args)
             : base(sender)
         {
-            this.View = view;
+            this.viewId = viewId;
             this.Method = method;
             this.Args = args;
         }
@@ -42,22 +44,9 @@ namespace IrisNetworking.Internal
         {
             base.Serialize(stream);
 
-            if (stream.IsWriting)
-            {
-                int viewId = this.View.GetViewId();
-                stream.Serialize(ref viewId);
-                stream.Serialize(ref this.Method);
-                stream.SerializeAdditionalTypeArray(ref this.Args);
-            }
-            else
-            {
-                int viewId = -1;
-                stream.Serialize(ref viewId);
-                stream.Serialize(ref this.Method);
-                stream.SerializeAdditionalTypeArray(ref this.Args);
-
-                this.View = IrisNetwork.FindView(viewId);
-            }
+            stream.Serialize(ref viewId);
+            stream.Serialize(ref this.Method);
+            stream.SerializeAdditionalTypeArray(ref this.Args);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 8
     /// </summary>
-    class IrisViewOwnerChangeMessage : IrisServerToClientMessage
+    public class IrisViewOwnerChangeMessage : IrisServerToClientMessage
 	{
         /// <summary>
         /// The view whose owner will change.
@@ -20,6 +20,8 @@ namespace IrisNetworking.Internal
         /// The new owner of the view.
         /// </summary>
         public IrisPlayer NewOwner;
+
+        public IrisViewOwnerChangeMessage() { }
 
         public IrisViewOwnerChangeMessage(IrisPlayer sender, IrisView view, IrisPlayer newOwner)
             : base(sender)

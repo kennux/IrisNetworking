@@ -12,7 +12,7 @@ namespace IrisNetworking.Internal
     /// 
     /// PacketID = 3
     /// </summary>
-    class IrisPartialFrameUpdateMessage : IrisNetworkMessage
+    public class IrisPartialFrameUpdateMessage : IrisNetworkMessage
     {
         public IrisViewUpdate[] ViewUpdates
         {
@@ -25,6 +25,8 @@ namespace IrisNetworking.Internal
         /// Used for compression and encryption (TODO).
         /// </summary>
         private IrisMaster master;
+
+        public IrisPartialFrameUpdateMessage() { }
 
         public IrisPartialFrameUpdateMessage(IrisPlayer sender, IrisViewUpdate[] viewUpdates, IrisMaster master)
             : base(sender)

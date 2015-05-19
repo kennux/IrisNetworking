@@ -377,6 +377,14 @@ namespace IrisNetworking
             return this.data.ToArray();
         }
 
+        /// <summary>
+        /// Resets the current stream pointer.
+        /// </summary>
+        public void Reset()
+        {
+            this.data.Position = 0;
+        }
+
         public virtual void Dispose()
         {
             this.Dispose(true);

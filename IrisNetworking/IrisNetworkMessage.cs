@@ -22,6 +22,15 @@ namespace IrisNetworking
         protected IrisPlayer _sender;
 
         /// <summary>
+        /// Constructs an empty message object.
+        /// This constructor must get overloaded in order to get the packet id while serializing and for dynamic instantiation.
+        /// </summary>
+        public IrisNetworkMessage()
+        {
+
+        }
+
+        /// <summary>
         /// The base constructor for iris network message objects.
         /// </summary>
         /// <param name="player"></param>

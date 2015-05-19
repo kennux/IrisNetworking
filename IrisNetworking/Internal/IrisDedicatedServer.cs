@@ -20,7 +20,7 @@ namespace IrisNetworking.Internal
         public IrisDedicatedServer(string bindIp, short port, short slots, IrisMaster master)
         {
             // Init sockets
-            this.clients = new IrisClient[slots];
+            this.clients = new IrisDedicatedClient[slots];
             this.serverSocket = new IrisServerSocket(bindIp, port, this.IncomingConnection);
 
             // +1 because the server is always the first player in dedicated mode.

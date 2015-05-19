@@ -7,14 +7,16 @@ namespace IrisNetworking.Internal
     /// <summary>
     /// This packet gets used to request object deletions on the master.
     /// 
-    /// PacketID = 6
+    /// PacketID = 2
     /// </summary>
-    class IrisObjectDeletionRequest : IrisNetworkMessage
+    public class IrisObjectDeletionRequest : IrisNetworkMessage
     {
         /// <summary>
         /// The id of the object we want to delete.
         /// </summary>
         public int viewId;
+
+        public IrisObjectDeletionRequest() { }
 
         public IrisObjectDeletionRequest(IrisPlayer sender, int viewId)
             : base(sender)
@@ -24,7 +26,7 @@ namespace IrisNetworking.Internal
 
         public override byte GetPacketId()
         {
-            return (byte)6;
+            return (byte)2;
         }
 
         public override void Serialize(IrisStream stream)

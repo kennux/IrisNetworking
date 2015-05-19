@@ -8,7 +8,7 @@ namespace IrisNetworking.Internal
     /// <summary>
     /// This structure will get used to serialize iris view updates.
     /// </summary>
-    class IrisViewUpdate : IrisSerializable
+    public class IrisViewUpdate : IrisSerializable
     {
         public int viewId;
         public byte[] state;

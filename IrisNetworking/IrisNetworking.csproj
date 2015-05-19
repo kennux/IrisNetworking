@@ -43,6 +43,7 @@
     <Compile Include="Exceptions\NotInitializedException.cs" />
     <Compile Include="Exceptions\ConnectionFailedException.cs" />
     <Compile Include="Internal\IrisClient.cs" />
+    <Compile Include="Internal\IrisDedicatedClient.cs" />
     <Compile Include="Internal\IrisServer.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisPongMessage.cs" />
     <Compile Include="Internal\Messages\ClientToServer\IrisPartialFrameUpdateMessage.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Internal\Messages\ServerToClient\IrisServerHandshakeMessage.cs" />
     <Compile Include="IrisNetworkMessage.cs" />
     <Compile Include="IrisMaster.cs" />
+    <Compile Include="Internal\IrisPacketIdentifier.cs" />
     <Compile Include="IrisPlayer.cs" />
     <Compile Include="IrisSerializable.cs" />
     <Compile Include="IrisStream.cs" />
@@ -88,6 +90,7 @@
       <Name>Snappy.Sharp</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

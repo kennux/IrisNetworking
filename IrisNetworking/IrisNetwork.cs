@@ -66,7 +66,7 @@ namespace IrisNetworking
         /// <summary>
         /// Gets the iris client socket.
         /// </summary>
-        public static IrisClient ClientSocket
+        public static IrisDedicatedClient ClientSocket
         {
             get
             {
@@ -124,7 +124,7 @@ namespace IrisNetworking
         /// <summary>
         /// The iris client socket reference to the currently used client.
         /// </summary>
-        private static IrisClient irisClient;
+        private static IrisDedicatedClient irisClient;
 
         /// <summary>
         /// Used for AllocateViewID().
@@ -175,6 +175,7 @@ namespace IrisNetworking
         public static void Initialize(IrisMaster masterInstance)
         {
             IrisNetwork.master = masterInstance;
+            IrisPacketIdentifier.Bootstrap();
             dedicatedServer = null;
             irisClient = null;
             initialized = true;
@@ -295,8 +296,8 @@ namespace IrisNetworking
         {
             if (!Initialized)
                 throw new NotInitializedException("Cant connect without being initialized");
-            // Here it is masterInstance because we'll always want a client master here!
-			irisClient = new IrisClient(ip, port, master, delegate(IrisClient client)
+
+			irisClient = new IrisDedicatedClient(ip, port, master, delegate(IrisDedicatedClient client)
             {
                 Disconnect();
             });
@@ -596,7 +597,7 @@ namespace IrisNetworking
                 // Announce rpc
                 if (isDedicated)
                 {
-                    dedicatedServer.SendMessageToPlayers(targets, new IrisRPCMessage(sender, view, method, args));
+                    dedicatedServer.SendMessageToPlayers(targets, new IrisRPCMessage(sender, view.GetViewId(), method, args));
                 }
 
                 // Execute local if we should
@@ -656,7 +657,7 @@ namespace IrisNetworking
                     view.AddRPCToBuffer(method, args, targets, sender);
 
                 // Local execution
-                if (targets == RPCTargets.All)
+                if (targets == RPCTargets.All || (targets == RPCTargets.Others && sender.PlayerId != master.GetLocalPlayer().PlayerId))
                     view.GotRPC(method, args, sender);
             }
             else

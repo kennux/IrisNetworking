@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using System.IO;
 
 namespace IrisNetworking
 {
@@ -50,6 +51,15 @@ namespace IrisNetworking
             new MessageTypeConfig(ConsoleColor.Green)
         };
 
+        private static TextWriter logfileWriter = null;
+        public static void OpenLogfile(string name)
+        {
+            if (File.Exists(name + ".log"))
+                File.Delete(name + ".log");
+
+            logfileWriter = File.CreateText(name + ".log");
+        }
+
         /// <summary>
         /// Logs the given message from the given module as the given messagetype.
         /// </summary>
@@ -67,7 +77,8 @@ namespace IrisNetworking
             // Workaround for VS C# <-> MONO C#
             // We're getting and setting foreground console color by reflection.
             // If this is supported, it gets set and otherwise not.
-            FieldInfo foregroundField = typeof(Console).GetField("ForegroundColor");
+            // TODO: Find out why this doesnt work.
+            /*FieldInfo foregroundField = typeof(Console).GetField("ForegroundColor");
 
             // Backup color
             ConsoleColor bkColor = ConsoleColor.Gray;
@@ -76,14 +87,17 @@ namespace IrisNetworking
 
             // Set type color
             if (foregroundField != null)
-                foregroundField.SetValue(null, messageTypeConfigs[(int)Convert.ChangeType(type, type.GetTypeCode())].consoleColor);
+                foregroundField.SetValue(null, messageTypeConfigs[(int)Convert.ChangeType(type, type.GetTypeCode())].consoleColor);*/
 
+            message = "[" + DateTime.Now + "] - [" + module + "]: " + message;
+            Console.WriteLine(message);
 
-            Console.WriteLine("[" + DateTime.Now + "] - [" + module + "]: " + message);
+            if (logfileWriter != null)
+                logfileWriter.WriteLine(message);
 
             // Set foreground color to backed up value
-            if (foregroundField != null)
-               foregroundField.SetValue(null, bkColor);
+            /*if (foregroundField != null)
+               foregroundField.SetValue(null, bkColor);*/
         }
     }
 }
