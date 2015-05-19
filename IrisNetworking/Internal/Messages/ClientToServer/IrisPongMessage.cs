@@ -11,6 +11,9 @@ namespace IrisNetworking.Internal
     /// </summary>
     public class IrisPongMessage : IrisNetworkMessage
     {
+
+        public IrisPongMessage() { }
+
         public IrisPongMessage(IrisPlayer sender)
             : base(sender)
         {

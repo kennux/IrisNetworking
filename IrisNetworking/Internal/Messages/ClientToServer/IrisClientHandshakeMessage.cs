@@ -16,6 +16,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public string playerName;
 
+        public IrisClientHandshakeMessage() { }
+
         public IrisClientHandshakeMessage(IrisPlayer sender, string playerName)
             : base(sender)
         {

@@ -17,6 +17,8 @@ namespace IrisNetworking.Internal
 
         public int[] playerPings;
 
+        public IrisPingUpdateMessage() { }
+
         public IrisPingUpdateMessage(IrisPlayer sender, IrisPlayer[] players)
             : base(sender)
         {

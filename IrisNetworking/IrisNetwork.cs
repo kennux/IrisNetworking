@@ -175,6 +175,7 @@ namespace IrisNetworking
         public static void Initialize(IrisMaster masterInstance)
         {
             IrisNetwork.master = masterInstance;
+            IrisPacketIdentifier.Bootstrap();
             dedicatedServer = null;
             irisClient = null;
             initialized = true;

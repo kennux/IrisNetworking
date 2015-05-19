@@ -13,6 +13,8 @@ namespace IrisNetworking.Internal
     {
         public IrisPlayer joinedPlayer;
 
+        public IrisPlayerJoinedMessage() { }
+
         public IrisPlayerJoinedMessage(IrisPlayer sender, IrisPlayer joinedPlayer) : base(sender)
         {
             this.joinedPlayer = joinedPlayer;

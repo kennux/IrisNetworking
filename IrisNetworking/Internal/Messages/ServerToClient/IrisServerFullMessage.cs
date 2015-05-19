@@ -11,6 +11,8 @@ namespace IrisNetworking.Internal
     /// </summary>
     public class IrisServerFullMessage : IrisServerToClientMessage
     {
+        public IrisServerFullMessage() { }
+
         public IrisServerFullMessage(IrisPlayer sender) : base(sender) { }
 
         public override byte GetPacketId()

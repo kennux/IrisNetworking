@@ -25,6 +25,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
+        public IrisRPCMessage() { }
+
         public IrisRPCMessage(IrisPlayer sender, IrisView view, string method, object[] args)
             : base(sender)
         {

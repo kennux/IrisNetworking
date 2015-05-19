@@ -12,6 +12,8 @@ namespace IrisNetworking.Internal
     /// </summary>
     public class IrisPingMessage : IrisServerToClientMessage
 	{
+        public IrisPingMessage() { }
+
         public IrisPingMessage(IrisPlayer sender)
             : base(sender)
         {

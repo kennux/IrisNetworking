@@ -37,6 +37,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
+        public IrisRPCExecutionMessage() { }
+
         public IrisRPCExecutionMessage(IrisPlayer sender, IrisView view, string method, object[] args, IrisPlayer[] targets)
             : base(sender)
         {

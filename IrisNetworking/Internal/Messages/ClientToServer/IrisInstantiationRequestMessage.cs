@@ -21,6 +21,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public byte[] initialState;
 
+        public IrisInstantiationRequestMessage() { }
+
         public IrisInstantiationRequestMessage(IrisPlayer sender, string objectName, byte[] initialState)
             : base(sender)
         {

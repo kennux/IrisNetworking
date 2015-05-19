@@ -16,6 +16,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public IrisPlayer player;
 
+        public IrisServerHandshakeMessage() { }
+
         public IrisServerHandshakeMessage(IrisPlayer sender, IrisPlayer player) : base(sender)
         {
             this.player = player;

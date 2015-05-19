@@ -40,6 +40,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
+        public IrisFrameUpdateMessage() { }
+
         public IrisFrameUpdateMessage(IrisPlayer sender, IrisViewUpdate[] viewUpdates, IrisMaster master)
             : base(sender)
         {

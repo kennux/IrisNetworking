@@ -6,6 +6,8 @@ namespace IrisNetworking.Internal
 {
     public abstract class IrisServerToClientMessage : IrisNetworkMessage
     {
+        public IrisServerToClientMessage() { }
+
         public IrisServerToClientMessage(IrisPlayer sender) : base(sender) { }
 
         public override void Serialize(IrisStream stream)

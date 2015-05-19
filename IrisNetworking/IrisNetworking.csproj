@@ -70,6 +70,7 @@
     <Compile Include="Internal\Messages\ServerToClient\IrisServerHandshakeMessage.cs" />
     <Compile Include="IrisNetworkMessage.cs" />
     <Compile Include="IrisMaster.cs" />
+    <Compile Include="Internal\IrisPacketIdentifier.cs" />
     <Compile Include="IrisPlayer.cs" />
     <Compile Include="IrisSerializable.cs" />
     <Compile Include="IrisStream.cs" />

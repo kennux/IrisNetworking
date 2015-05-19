@@ -16,6 +16,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public int viewId;
 
+        public IrisObjectDeletionMessage() { }
+
         public IrisObjectDeletionMessage(IrisPlayer sender, int viewId)
             : base(sender)
         {

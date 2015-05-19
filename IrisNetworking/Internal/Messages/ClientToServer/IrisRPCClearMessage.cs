@@ -17,6 +17,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
+        public IrisRPCClearMessage() { }
+
         public IrisRPCClearMessage(IrisPlayer sender, IrisView view)
             : base(sender)
         {

@@ -14,6 +14,8 @@ namespace IrisNetworking.Internal
     {
         public IrisView View;
 
+        public IrisViewOwnershipRequestMessage() { }
+
         public IrisViewOwnershipRequestMessage(IrisPlayer sender, IrisView view)
             : base(sender)
         {

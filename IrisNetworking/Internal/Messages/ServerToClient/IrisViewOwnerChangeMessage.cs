@@ -21,6 +21,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public IrisPlayer NewOwner;
 
+        public IrisViewOwnerChangeMessage() { }
+
         public IrisViewOwnerChangeMessage(IrisPlayer sender, IrisView view, IrisPlayer newOwner)
             : base(sender)
         {

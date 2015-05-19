@@ -14,22 +14,23 @@ namespace IrisNetworking.Test
     /// </summary>
     public class IrisTestClient : IrisClient
     {
-        public IrisTestClient(string ip, short port, IrisMaster master, Action<IrisClient> disconnectEvent)
+        private IrisTestMessageSequence messageSequence;
+
+        public IrisTestClient(IrisTestMessageSequence messageSequence, string ip, short port, IrisMaster master, Action<IrisClient> disconnectEvent)
             : base(ip, port, master, disconnectEvent)
         {
-
+            this.messageSequence = messageSequence;
         }
 
-        public IrisTestClient(Socket socket, IrisPlayer player, IrisMaster master, IrisServer serverMaster, Action<IrisClient> disconnectEvent)
+        public IrisTestClient(IrisTestMessageSequence messageSequence, Socket socket, IrisPlayer player, IrisMaster master, IrisServer serverMaster, Action<IrisClient> disconnectEvent)
             : base(socket, player, master, serverMaster, disconnectEvent)
         {
-
+            this.messageSequence = messageSequence;
         }
 
         public override void SendMessage(IrisNetworkMessage message)
         {
             base.SendMessage(message);
-
         }
 
         protected override void ClientToServerProtocol(IrisStream stream, byte header)

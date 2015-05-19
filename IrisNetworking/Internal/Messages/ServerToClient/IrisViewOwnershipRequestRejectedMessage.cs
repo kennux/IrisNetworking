@@ -17,6 +17,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         public IrisView View;
 
+        public IrisViewOwnershipRequestRejectedMessage() { }
+
         public IrisViewOwnershipRequestRejectedMessage(IrisPlayer sender, IrisView view)
             : base(sender)
         {

@@ -26,6 +26,8 @@ namespace IrisNetworking.Internal
         /// </summary>
         private IrisMaster master;
 
+        public IrisPartialFrameUpdateMessage() { }
+
         public IrisPartialFrameUpdateMessage(IrisPlayer sender, IrisViewUpdate[] viewUpdates, IrisMaster master)
             : base(sender)
         {
