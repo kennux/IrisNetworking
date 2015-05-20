@@ -15,14 +15,14 @@ namespace IrisNetworking.Internal
         /// <summary>
         /// The view whose owner will change.
         /// </summary>
-        public IrisView View;
+        public int viewId;
 
         public IrisViewOwnershipRequestRejectedMessage() { }
 
-        public IrisViewOwnershipRequestRejectedMessage(IrisPlayer sender, IrisView view)
+        public IrisViewOwnershipRequestRejectedMessage(IrisPlayer sender, int viewId)
             : base(sender)
         {
-            this.View = view;
+            this.viewId = viewId;
         }
 
         public override byte GetPacketId()
@@ -34,15 +34,7 @@ namespace IrisNetworking.Internal
         {
             base.Serialize(stream);
 
-            // Serialize view info
-            int viewId = (this.View != null ? this.View.GetViewId() : -1);
             stream.Serialize(ref viewId);
-
-            if (!stream.IsWriting)
-            {
-                this.View = IrisNetwork.FindView(viewId);
-            }
-
         }
     }
 }

@@ -102,6 +102,9 @@ namespace IrisNetworking.Sockets
             Socket socket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
 
+            // Disable Nagle-algorithm
+            socket.NoDelay = true;
+
             // Connect
             socket.Connect(remoteEP);
 

@@ -779,7 +779,7 @@ namespace IrisNetworking
                     // Announce
                     if (isDedicated)
                     {
-                        dedicatedServer.BroadcastMessage(new IrisViewOwnerChangeMessage(master.GetLocalPlayer(), view, newOwner));
+                        dedicatedServer.BroadcastMessage(new IrisViewOwnerChangeMessage(master.GetLocalPlayer(), view.GetViewId(), newOwner));
                     }
                 }
                 else
@@ -789,7 +789,7 @@ namespace IrisNetworking
 
                     if (isDedicated)
                     {
-                        dedicatedServer.SendMessageToPlayer(newOwner, new IrisViewOwnershipRequestRejectedMessage(master.GetLocalPlayer(), view));
+                        dedicatedServer.SendMessageToPlayer(newOwner, new IrisViewOwnershipRequestRejectedMessage(master.GetLocalPlayer(), view.GetViewId()));
                     }
                 }
             }
@@ -797,7 +797,7 @@ namespace IrisNetworking
             {
                 IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "Requested view ownership for " + view.GetViewId());
                 // Send ownership request
-                irisClient.SendMessage(new IrisViewOwnershipRequestMessage(null, view));
+                irisClient.SendMessage(new IrisViewOwnershipRequestMessage(null, view.GetViewId()));
             }
         }
 		

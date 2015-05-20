@@ -10,14 +10,12 @@ namespace IrisNetworking.Test
     /// IrisNetworking connection test.
     /// Tests todo:
     /// - Frame update testing
-    /// - Ping update testing
-    /// - Ownership request process
+    /// - Ownership request processing
     /// 
     /// </summary>
     [TestClass]
     public class ConnectionTest
     {
-
         [TestInitialize]
         public void Init()
         {
@@ -200,17 +198,13 @@ namespace IrisNetworking.Test
             Thread.Sleep(100);
 
             // Process message
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Wait for the answer to arrive
             Thread.Sleep(100);
 
             // Process answer
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Send deletion request with rights
             testClient.SendMessage(new IrisObjectDeletionRequest(null, 2));
@@ -219,17 +213,13 @@ namespace IrisNetworking.Test
             Thread.Sleep(100);
 
             // Process message
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Wait for the answer to arrive
             Thread.Sleep(100);
 
             // Process answer
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Send deletion request without rights
             testClient.SendMessage(new IrisObjectDeletionRequest(null, 1));
@@ -238,17 +228,13 @@ namespace IrisNetworking.Test
             Thread.Sleep(100);
 
             // Process message
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Wait for the answer to arrive
             Thread.Sleep(100);
 
             // Process answer
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Close clients
             testClient.Close();
@@ -289,7 +275,7 @@ namespace IrisNetworking.Test
         /// -> Rpc execution on the server
         /// -> Rpc execution on the client
         /// 
-        /// - RPC Buffer clearance
+        /// - RPC Buffer clearance on the server
         /// </summary>
         [TestMethod]
         public void TestDedicatedRPC()
@@ -344,17 +330,13 @@ namespace IrisNetworking.Test
             Thread.Sleep(100);
 
             // Process message
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Wait for the answer to arrive
             Thread.Sleep(100);
 
             // Process answer
-            IrisNetwork.UpdateFrame();
-            testClient.Update();
-            remoteTestClient.Update();
+            this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Clear rpc buffer
             IrisNetwork.ClearRPCBuffer(IrisNetwork.FindView(1));
@@ -401,6 +383,148 @@ namespace IrisNetworking.Test
             Assert.IsFalse(rpcWasReceived);
         }
 
+        /// <summary>
+        /// Tests if the ping update package arrives.
+        /// This test covers:
+        /// 
+        /// - Client ping update arrival
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedPingUpdates()
+        {
+            // Init with empty sequence
+            IrisTestMessageSequence sequence = new IrisTestMessageSequence();
+
+            // Await the ping update message
+            sequence.AwaitReceive(typeof(IrisPingUpdateMessage), (m) =>
+            {
+
+            });
+
+            // Init networking
+            IrisNetwork.LocalPlayerName = "TestPlayerName";
+
+            this.UpdateServerInMilliseconds(20);
+            IrisTestClient testClient = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
+            {
+                sck.Close();
+            });
+
+            Assert.IsTrue(testClient.Handshaked);
+
+            Thread.Sleep(11000);
+            this.UpdateServerAndClients(testClient);
+
+            testClient.Close();
+
+            sequence.Validate();
+        }
+
+        /// <summary>
+        /// This test covers:
+        /// 
+        /// - Client view ownership requesting
+        /// - Client view ownership change message
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedViewOwnershipChange()
+        {
+            // Init awaited sequence
+            IrisTestMessageSequence sequence = new IrisTestMessageSequence();
+
+            bool rejectionWasSuccessfull = false;
+            bool ownerChangeWasSuccessfull = false;
+            bool secondOwnerChangeWasSuccessfull = false;
+
+            // Await a ownership rejected message
+            sequence.AwaitReceive(typeof(IrisViewOwnershipRequestRejectedMessage), (m) =>
+            {
+                IrisViewOwnershipRequestRejectedMessage rej = (IrisViewOwnershipRequestRejectedMessage)m;
+                rejectionWasSuccessfull = true;
+            });
+
+            // Then, await ownership tookover message
+            sequence.AwaitReceive(typeof(IrisViewOwnerChangeMessage), (m) =>
+            {
+                IrisViewOwnerChangeMessage mess = (IrisViewOwnerChangeMessage)m;
+                ownerChangeWasSuccessfull = mess.NewOwner.PlayerId == 1;
+            });
+
+            // Then, again await re-takeover from the server
+            sequence.AwaitReceive(typeof(IrisViewOwnerChangeMessage), (m) =>
+            {
+                IrisViewOwnerChangeMessage mess = (IrisViewOwnerChangeMessage)m;
+                secondOwnerChangeWasSuccessfull = mess.NewOwner.PlayerId == 0;
+            });
+
+            // Init networking
+            IrisNetwork.LocalPlayerName = "TestPlayerName";
+
+            this.UpdateServerInMilliseconds(10);
+            IrisTestClient testClient = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
+            {
+                sck.Close();
+            });
+
+            Assert.IsTrue(testClient.Handshaked);
+            this.UpdateServerAndClients(testClient);
+
+            // Request ownership without right to own it
+            TestIrisView.OwnershipRequestAnswer = false;
+            testClient.SendMessage(new IrisViewOwnershipRequestMessage(null, 1));
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            // Request ownership
+            TestIrisView.OwnershipRequestAnswer = true;
+            testClient.SendMessage(new IrisViewOwnershipRequestMessage(null, 1));
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            // Change ownership to server again
+            IrisNetwork.RequestViewOwnership(IrisNetwork.FindView(1));
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            testClient.Close();
+
+            // Make sure all awaited messages arrived
+            sequence.Validate();
+
+            // Asset flags
+            Assert.IsTrue(rejectionWasSuccessfull);
+            Assert.IsTrue(ownerChangeWasSuccessfull);
+            Assert.IsTrue(secondOwnerChangeWasSuccessfull);
+        }
+
+        /// <summary>
+        /// Updates all given iris test clients and calls IrisNetwork.UpdateFrame().
+        /// </summary>
+        /// <param name="clients"></param>
+        private void UpdateServerAndClients(params IrisTestClient[] clients)
+        {
+            IrisNetwork.UpdateFrame();
+
+            foreach (IrisTestClient c in clients)
+                c.Update();
+        }
+
+        /// <summary>
+        /// Spawns a new thread which will wait for the given millis and then call IrisNetwork.UpdateFrame().
+        /// </summary>
+        /// <param name="millis"></param>
         private void UpdateServerInMilliseconds(int millis)
         {
             new Thread(() =>

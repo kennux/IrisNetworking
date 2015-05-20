@@ -14,7 +14,7 @@ namespace IrisNetworking.Internal
         /// <summary>
         /// The view whose owner will change.
         /// </summary>
-        public IrisView View;
+        public int viewId;
 
         /// <summary>
         /// The new owner of the view.
@@ -23,10 +23,10 @@ namespace IrisNetworking.Internal
 
         public IrisViewOwnerChangeMessage() { }
 
-        public IrisViewOwnerChangeMessage(IrisPlayer sender, IrisView view, IrisPlayer newOwner)
+        public IrisViewOwnerChangeMessage(IrisPlayer sender, int viewId, IrisPlayer newOwner)
             : base(sender)
         {
-            this.View = view;
+            this.viewId = viewId;
             this.NewOwner = newOwner;
         }
 
@@ -40,8 +40,7 @@ namespace IrisNetworking.Internal
             base.Serialize(stream);
 
             // Serialize view info
-            int viewId = (this.View != null ? this.View.GetViewId() : -1);
-            stream.Serialize(ref viewId);
+            stream.Serialize(ref this.viewId);
 
             // Serialize player info
             int newOwnerId = (this.NewOwner != null ? this.NewOwner.PlayerId : -1);
@@ -49,7 +48,6 @@ namespace IrisNetworking.Internal
 
             if (!stream.IsWriting)
             {
-                this.View = IrisNetwork.FindView(viewId);
                 this.NewOwner = IrisNetwork.FindPlayer(newOwnerId);
             }
 

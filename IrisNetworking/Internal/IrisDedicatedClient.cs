@@ -370,15 +370,17 @@ namespace IrisNetworking.Internal
                 case 6:
                     if (this.player != null)
                     {
-                        IrisViewOwnershipRequestMessage ownerChangeMessage = new IrisViewOwnershipRequestMessage(null, null);
+                        IrisViewOwnershipRequestMessage ownerChangeMessage = new IrisViewOwnershipRequestMessage(null, -1);
                         ownerChangeMessage.Serialize(stream);
 
-                        if (ownerChangeMessage.View != null)
+                        IrisView view = this.master.FindView(ownerChangeMessage.viewId);
+
+                        if (view != null)
                         {
-                            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got View ownership request from " + this.player + " for view id = " + ownerChangeMessage.View.GetViewId());
+                            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got View ownership request from " + this.player + " for view id = " + ownerChangeMessage.viewId);
 
                             // Change the ownership
-                            IrisNetwork.RequestViewOwnership(ownerChangeMessage.View, this.player);
+                            IrisNetwork.RequestViewOwnership(view, this.player);
                         }
                     }
                     break;
@@ -545,24 +547,29 @@ namespace IrisNetworking.Internal
                     // Ownership change
                 case 8:
                     {
-                        IrisViewOwnerChangeMessage ownerChange = new IrisViewOwnerChangeMessage(null, null, null);
+                        IrisViewOwnerChangeMessage ownerChange = new IrisViewOwnerChangeMessage(null, -1, null);
                         ownerChange.Serialize(stream);
 
-                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got ownership change message from " + ownerChange.Sender + " for view id = " + ownerChange.View.GetViewId() + ", new owner: " + ownerChange.NewOwner);
+                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got ownership change message from " + ownerChange.Sender + " for view id = " + ownerChange.viewId + ", new owner: " + ownerChange.NewOwner);
+
+                        IrisView view = this.master.FindView(ownerChange.viewId);
 
                         // Change owner
-                        if (ownerChange.View != null)
-                            ownerChange.View.SetOwner(ownerChange.NewOwner);
+                        if (view != null)
+                            view.SetOwner(ownerChange.NewOwner);
                     }
                     break;
                     // Ownership request rejected
                 case 9:
                     {
-                        IrisViewOwnershipRequestRejectedMessage ownershipRejectMessage = new IrisViewOwnershipRequestRejectedMessage(null, null);
+                        IrisViewOwnershipRequestRejectedMessage ownershipRejectMessage = new IrisViewOwnershipRequestRejectedMessage(null, -1);
                         ownershipRejectMessage.Serialize(stream);
 
-                        if (ownershipRejectMessage.View != null)
-                            ownershipRejectMessage.View.OwnershipRequestRejected();
+                        // Get the view for the arrived packet
+                        IrisView view = this.master.FindView(ownershipRejectMessage.viewId);
+
+                        if (view != null)
+                            view.OwnershipRequestRejected();
                     }
                     break;
                     // Ping - return Pong
