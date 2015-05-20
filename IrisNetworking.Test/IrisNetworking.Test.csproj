@@ -51,7 +51,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Highlevel\PacketIdentifierTest.cs" />
-    <Compile Include="Highlevel\HighLevelTest.cs" />
+    <Compile Include="Highlevel\DedicatedHighLevelTest.cs" />
     <Compile Include="Highlevel\IrisStreamTest.cs" />
     <Compile Include="IrisTestClient.cs" />
     <Compile Include="IrisTestMessageSequence.cs" />

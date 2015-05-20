@@ -13,6 +13,17 @@ namespace IrisNetworking.Internal
     public abstract class IrisClient
     {
         /// <summary>
+        /// Forwards the connected flag of the underlying client socket.
+        /// </summary>
+        public bool Connected
+        {
+            get
+            {
+                return this.clientSocket != null && this.clientSocket.Connected;
+            }
+        }
+
+        /// <summary>
         /// The iris client socket used for data receiving and sending.
         /// </summary>
         public IrisClientSocket ClientSocket

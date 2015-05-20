@@ -277,7 +277,7 @@ namespace IrisNetworking.Internal
                         // Validity check
                         IrisView view = this.master.FindView(deletionRequest.viewId);
 
-                        if (view.GetOwner().PlayerId == this.player.PlayerId)
+                        if (view != null && view.GetOwner().PlayerId == this.player.PlayerId)
                         {
                             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Destroyed object with view id " + deletionRequest.viewId + " on request!");
                             // Permission granted! Delete!

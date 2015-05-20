@@ -373,14 +373,22 @@ namespace IrisNetworking.Sockets
 
             while (bytesReceived < count)
             {
-                // Prepare buffer
-                int needsBytes = count - bytesReceived;
-                byte[] buffer = new byte[needsBytes];
+                try
+                {
+                    // Prepare buffer
+                    int needsBytes = count - bytesReceived;
+                    byte[] buffer = new byte[needsBytes];
 
-                // Read data
-                int actuallyRead = this.client.Receive(buffer);
-                bytesReceived += actuallyRead;
-                memoryStream.Write(buffer, 0, actuallyRead);
+                    // Read data
+                    int actuallyRead = this.client.Receive(buffer);
+                    bytesReceived += actuallyRead;
+                    memoryStream.Write(buffer, 0, actuallyRead);
+                }
+                catch (ObjectDisposedException e)
+                {
+                    // This happens if the stream got closed
+                    this.Close();
+                }
             }
 
             return memoryStream.ToArray();

@@ -8,13 +8,22 @@ namespace IrisNetworking.Test
 {
     /// <summary>
     /// IrisNetworking connection test.
-    /// Tests todo:
-    /// - Frame update testing
-    /// - Ownership request processing
+    /// Tests implemented:
+    /// 
+    /// DEDICATED:
+    /// ==============
+    /// - Frame updates client <-> server
+    /// - Handshake client <-> server
+    /// - RPC (+ RPC-Buffering) client <-> server
+    /// - View instantiation client <-> server
+    /// - Ownership request / takeover process client <-> server
+    /// - Ping updates server -> client
+    /// 
+    /// This tests should cover all basic features of iris networking.
     /// 
     /// </summary>
     [TestClass]
-    public class ConnectionTest
+    public class DedicatedHighLevelTest
     {
         [TestInitialize]
         public void Init()
@@ -22,7 +31,7 @@ namespace IrisNetworking.Test
             // Init a test scenario
             IrisNetwork.Initialize(new TestManager());
             IrisNetwork.StartDedicated("127.0.0.1", 1337, 10);
-            IrisNetwork.InstantiateObject("TestObject", new byte[] { 4, 0, 0, 0,     1, 2, 3, 4 });
+            IrisNetwork.InstantiateObject("TestObject", new byte[] { 4, 0, 0, 0, 1, 2, 3, 4 });
 
             Assert.IsNotNull(IrisNetwork.FindView(1));
         }
@@ -103,6 +112,9 @@ namespace IrisNetworking.Test
                 sck.Close();
             });
 
+            // Clear buffer
+            IrisNetwork.ClearRPCBuffer(IrisNetwork.FindView(1));
+
             Assert.IsTrue(testClient.Handshaked);
 
             testClient.Close();
@@ -130,6 +142,8 @@ namespace IrisNetworking.Test
             bool viewCorrectlyRemoved1 = false;
             bool viewCorrectlyRemoved2 = false;
 
+            int nextViewId = IrisNetwork.AllocateViewID() + 1;
+
             // Prepare sequence
             IrisTestMessageSequence viewInstantiationSequence = new IrisTestMessageSequence();
 
@@ -147,7 +161,7 @@ namespace IrisNetworking.Test
             viewInstantiationSequence.AwaitReceive(typeof(IrisObjectDeletionMessage), (message) =>
             {
                 IrisObjectDeletionMessage m = (IrisObjectDeletionMessage)message;
-                viewCorrectlyRemoved1 = m.viewId == 2;
+                viewCorrectlyRemoved1 = m.viewId == nextViewId;
             });
 
             // Prepare remote sequence
@@ -167,7 +181,7 @@ namespace IrisNetworking.Test
             remoteViewInstantiationSequence.AwaitReceive(typeof(IrisObjectDeletionMessage), (message) =>
             {
                 IrisObjectDeletionMessage m = (IrisObjectDeletionMessage)message;
-                viewCorrectlyRemoved2 = m.viewId == 2;
+                viewCorrectlyRemoved2 = m.viewId == nextViewId;
             });
 
             this.UpdateServerInMilliseconds(10);
@@ -207,7 +221,7 @@ namespace IrisNetworking.Test
             this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Send deletion request with rights
-            testClient.SendMessage(new IrisObjectDeletionRequest(null, 2));
+            testClient.SendMessage(new IrisObjectDeletionRequest(null, nextViewId));
 
             // Wait for the message to arrive
             Thread.Sleep(100);
@@ -275,6 +289,7 @@ namespace IrisNetworking.Test
         /// -> Rpc execution on the server
         /// -> Rpc execution on the client
         /// 
+        /// - RPC Arguments
         /// - RPC Buffer clearance on the server
         /// </summary>
         [TestMethod]
@@ -283,6 +298,7 @@ namespace IrisNetworking.Test
             // Flags
             bool RPCWasSent = false;
             bool RPC2WasSent = false;
+            bool RPC3WasSent = false;
 
             // Prepare sequence
             IrisTestMessageSequence rpcSequence = new IrisTestMessageSequence();
@@ -294,12 +310,17 @@ namespace IrisNetworking.Test
             remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
             {
                 IrisRPCMessage m = (IrisRPCMessage)message;
-                RPCWasSent = m.Sender.PlayerId == 1 && m.Method == "TestRPC" && m.viewId == 1;
+                RPCWasSent = m.Sender.PlayerId == 1 && m.Method == "TestRPC" && m.viewId == 1 && m.Args.Length == 1 && m.Args[0].Equals("testarg");
             });
             remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
             {
                 IrisRPCMessage m = (IrisRPCMessage)message;
-                RPC2WasSent = m.Sender.PlayerId == 1 && m.Method == "Test123" && m.viewId == 1;
+                RPC2WasSent = m.Sender.PlayerId == 1 && m.Method == "Test123" && m.viewId == 1 && m.Args.Length == 1 && m.Args[0].Equals("testarg");
+            });
+            remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
+            {
+                IrisRPCMessage m = (IrisRPCMessage)message;
+                RPC3WasSent = m.Sender.PlayerId == 1 && m.Method == "TestNoArgs" && m.viewId == 1;
             });
 
             this.UpdateServerInMilliseconds(10);
@@ -323,8 +344,9 @@ namespace IrisNetworking.Test
             Thread.Sleep(15);
 
             // Send rpc request
-            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "TestRPC", null, RPCTargets.Others, true));
-            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "Test123", null, new IrisPlayer[] { new IrisPlayer(2) }));
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "TestRPC", new object[] { "testarg" }, RPCTargets.Others, true));
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "Test123", new object[] { "testarg" }, new IrisPlayer[] { new IrisPlayer(2) }));
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "TestNoArgs", null, new IrisPlayer[] { new IrisPlayer(2) }));
 
             // Wait for the message to arrive
             Thread.Sleep(100);
@@ -359,6 +381,7 @@ namespace IrisNetworking.Test
             // Flags
             Assert.IsTrue(RPCWasSent);
             Assert.IsTrue(RPC2WasSent);
+            Assert.IsTrue(RPC3WasSent);
 
             bool rpcWasReceived = false;
 
@@ -367,7 +390,7 @@ namespace IrisNetworking.Test
             rpcBufferTestSequence.AwaitReceive(typeof(IrisRPCMessage), (m) =>
             {
                 IrisRPCMessage message = (IrisRPCMessage)m;
-                rpcWasReceived = message.Method == "TestRPC";
+                rpcWasReceived = message.Method == "TestRPC" && message.Args.Length == 1 && message.Args[0].Equals("testarg");
             });
 
             TestManager master = new TestManager();
@@ -421,6 +444,85 @@ namespace IrisNetworking.Test
         }
 
         /// <summary>
+        /// Tests if the frame update message arrives and if a partial frame update gets sent out.
+        /// This test covers:
+        /// 
+        /// - Client partial frame update sending
+        /// - Server whole update frame sending
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedFrameUpdates()
+        {
+            // Init with empty sequence
+            IrisTestMessageSequence sequence = new IrisTestMessageSequence();
+
+            // Test-flags
+            bool frameUpdateCorrect = false;
+            bool instantiationWasCorrect = false;
+            bool partialFrameUpdateWasCorrect = false;
+
+            // Await...
+            sequence.AwaitReceive(typeof(IrisInstantiationMessage), (m) =>
+            {
+            });
+            sequence.AwaitReceive(typeof(IrisInstantiationMessage), (m) =>
+            {
+                IrisInstantiationMessage iM = (IrisInstantiationMessage)m;
+                instantiationWasCorrect = iM.objectName == "FTest";
+            });
+            sequence.AwaitReceive(typeof(IrisFrameUpdateMessage), (m) =>
+            {
+                IrisFrameUpdateMessage frameUM = (IrisFrameUpdateMessage)m;
+
+                // Only one update and only for view id 1
+                frameUpdateCorrect = frameUM.ViewUpdates.Length == 1 && frameUM.ViewUpdates[0].viewId == 1;
+            });
+
+            sequence.AwaitSend(typeof(IrisPartialFrameUpdateMessage), (m) =>
+            {
+            });
+            sequence.AwaitSend(typeof(IrisPartialFrameUpdateMessage), (m) =>
+            {
+                IrisPartialFrameUpdateMessage message = (IrisPartialFrameUpdateMessage)m;
+                partialFrameUpdateWasCorrect = (message.ViewUpdates.Length == 1 && message.ViewUpdates[0].viewId > 1);
+            });
+
+            // Init networking
+            IrisNetwork.LocalPlayerName = "TestPlayerName";
+
+            this.UpdateServerInMilliseconds(20);
+            IrisTestClient testClient = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
+            {
+                sck.Close();
+            });
+            Assert.IsTrue(testClient.Handshaked);
+
+            // Send instantiation request
+            testClient.SendMessage(new IrisInstantiationRequestMessage(null, "FTest", new byte[] { 4, 0, 0, 0, 1, 2, 3, 4 }));
+
+            // Wait for the message to arrive
+            Thread.Sleep(100);
+
+            // Process message
+            this.UpdateServerAndClients(testClient);
+
+            // Wait for the answer to arrive
+            Thread.Sleep(100);
+
+            // Process answer
+            this.UpdateServerAndClients(testClient);
+
+            testClient.Close();
+
+            sequence.Validate();
+
+            // Assert test flags are true
+            Assert.IsTrue(frameUpdateCorrect);
+            Assert.IsTrue(instantiationWasCorrect);
+            Assert.IsTrue(partialFrameUpdateWasCorrect);
+        }
+
+        /// <summary>
         /// This test covers:
         /// 
         /// - Client view ownership requesting
@@ -447,7 +549,7 @@ namespace IrisNetworking.Test
             sequence.AwaitReceive(typeof(IrisViewOwnerChangeMessage), (m) =>
             {
                 IrisViewOwnerChangeMessage mess = (IrisViewOwnerChangeMessage)m;
-                ownerChangeWasSuccessfull = mess.NewOwner.PlayerId == 1;
+                ownerChangeWasSuccessfull = mess.NewOwner.Name.Equals("TestDedicatedViewOwnershipChange");
             });
 
             // Then, again await re-takeover from the server
@@ -458,7 +560,7 @@ namespace IrisNetworking.Test
             });
 
             // Init networking
-            IrisNetwork.LocalPlayerName = "TestPlayerName";
+            IrisNetwork.LocalPlayerName = "TestDedicatedViewOwnershipChange";
 
             this.UpdateServerInMilliseconds(10);
             IrisTestClient testClient = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
@@ -507,6 +609,44 @@ namespace IrisNetworking.Test
             Assert.IsTrue(rejectionWasSuccessfull);
             Assert.IsTrue(ownerChangeWasSuccessfull);
             Assert.IsTrue(secondOwnerChangeWasSuccessfull);
+        }
+
+        /// <summary>
+        /// Tests connecting to a not existing server with an iris client.
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedConnectionError()
+        {
+            IrisDedicatedClient client = null;
+
+            try
+            {
+                client = new IrisDedicatedClient("127.0.0.1", 13337, new TestManager(), (sck) => { });
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                Assert.IsNull(client);
+
+                return;
+            }
+
+            Assert.IsTrue(false);
+        }
+
+        /// <summary>
+        /// Tests all protocol functions with compression enabled
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedCompression()
+        {
+            IrisNetwork.Compression = IrisCompression.GOOGLE_SNAPPY;
+
+            this.TestDedicatedHandshake();
+            this.TestDedicatedFrameUpdates();
+            this.TestDedicatedRPC();
+            this.TestDedicatedViewInstantiationDestroy();
+            this.TestDedicatedViewOwnershipChange();
+            this.TestDedicatedPingUpdates();
         }
 
         /// <summary>

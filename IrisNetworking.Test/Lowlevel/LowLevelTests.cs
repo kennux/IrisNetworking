@@ -67,5 +67,54 @@ namespace IrisNetworking.Test
             Assert.IsTrue(gotData);
             Assert.IsTrue(disconnected);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void TestLowLevelCompression()
+        {
+            byte[] sampleData = new byte[256];
+            new Random(DateTime.Now.Millisecond).NextBytes(sampleData);
+
+            // Create server socket
+            IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
+            {
+                IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
+                {
+                    // Check if this is the sample data
+                    Assert.AreEqual(pi.payload.Length, sampleData.Length);
+                    for (int i = 0; i < sampleData.Length; i++)
+                        Assert.AreEqual(sampleData[i], pi.payload[i]);
+
+                }, (sck) =>
+                {
+                });
+            });
+
+            // Create client socket and try connection
+            IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
+            {
+
+            }, (socket) =>
+            {
+
+            });
+
+            // Write sample data 100000 times
+            IrisNetwork.Compression = IrisCompression.GOOGLE_SNAPPY;
+            for (int i = 0; i < 100000; i++)
+            {
+                clientSocket.SendRaw(sampleData);
+            }
+            IrisNetwork.Compression = IrisCompression.NONE;
+            for (int i = 0; i < 100000; i++)
+            {
+                clientSocket.SendRaw(sampleData);
+            }
+
+            serverSocket.Close();
+            clientSocket.Close();
+        }
     }
 }
