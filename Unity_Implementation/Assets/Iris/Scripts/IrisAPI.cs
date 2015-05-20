@@ -87,16 +87,6 @@ public static class IrisAPI
 	}
 	
 	/// <summary>
-	/// Gets set in initialize.
-	/// If this is set to true, packet interpretation in iris client will happen on the socket reader thread.
-	/// If this is set to false, packet interpretation in iris client will happen in the UpdateFrame() call.
-	/// </summary>
-	public static bool Multithread
-	{
-		get { return IrisNetwork.Multithread; }
-	}
-	
-	/// <summary>
 	/// Initializes the iris network.
 	/// You should call this function in the constructor of your manager.
 	/// 

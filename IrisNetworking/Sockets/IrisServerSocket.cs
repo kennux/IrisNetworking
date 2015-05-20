@@ -67,6 +67,7 @@ namespace IrisNetworking.Sockets
         /// <param name="socket"></param>
         private void Initialize(Socket socket)
         {
+            socket.NoDelay = true;
             this.server = socket;
 
             // Init listener

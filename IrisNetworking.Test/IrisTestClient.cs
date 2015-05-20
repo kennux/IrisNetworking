@@ -23,7 +23,7 @@ namespace IrisNetworking.Test
             this.InitializeClient(ip, port, master, disconnectEvent);
         }
 
-        public void Update()
+        public override void Update()
         {
             // Update
             base.Update();

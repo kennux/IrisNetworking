@@ -413,7 +413,7 @@ namespace IrisTestConsole
                                 {
                                     IrisNetwork.UpdateFrame();
 
-                                    Thread.Sleep(10);
+                                    Thread.Sleep(25);
                                 }
                             });
                             updateThread.Start();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using IrisNetworking.Sockets;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace IrisNetworking.Internal
 {
@@ -64,9 +65,9 @@ namespace IrisNetworking.Internal
         protected int ping;
 
         /// <summary>
-        /// The ping timer used in SendPingPacket().
+        /// The ping timer used in StartPing().
         /// </summary>
-        private double pingTimer;
+        private Stopwatch pingTimer;
 
         // Used for IrisTestClient
         protected IrisDedicatedClient() { }
@@ -353,16 +354,19 @@ namespace IrisNetworking.Internal
                 case 5:
                     if (this.player != null)
                     {
-                        IrisRPCClearMessage clearMessage = new IrisRPCClearMessage(null, null);
+                        IrisRPCClearMessage clearMessage = new IrisRPCClearMessage(null, -1);
                         clearMessage.Serialize(stream);
 
-                        IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got RPC Clear message from client for view id = " + clearMessage.View.GetViewId() + ", Owner check = " + (clearMessage.View.GetOwner() == this.Player));
+                        IrisView view = this.master.FindView(clearMessage.ViewId);
+
+                        if (view != null)
+                            IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got RPC Clear message from client for view id = " + clearMessage.ViewId + ", Owner check = " + (view.GetOwner() == this.Player));
 
                         // Validity check
-                        if (clearMessage.View.GetOwner() == this.Player)
+                        if (view != null && view.GetOwner() == this.Player)
                         {
                             // Player is allowed to clear the buffer
-                            IrisNetwork.ClearRPCBuffer(clearMessage.View);
+                            IrisNetwork.ClearRPCBuffer(view);
                         }
                     }
                     break;
@@ -385,15 +389,14 @@ namespace IrisNetworking.Internal
                     }
                     break;
                 case 7:
+                    if (this.pingTimer != null)
                     {
                         IrisPongMessage pongMessage = new IrisPongMessage(null);
                         pongMessage.Serialize(stream);
 
-                        double timestamp = DateTime.Now.ToUniversalTime().Subtract(
-                            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                        ).TotalMilliseconds;
-
-                        this.ping = (int)(timestamp - this.pingTimer);
+                        this.pingTimer.Stop();
+                        this.ping = (int) this.pingTimer.Elapsed.Milliseconds;
+                        this.pingTimer = null;
                         this.player.Ping = this.ping;
 
                         IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisClient", "Got pong from client: " + this.player + ", ping: " + this.player.Ping + "ms");
@@ -633,9 +636,7 @@ namespace IrisNetworking.Internal
         {
             // Set timestamp to the pingtimer
 
-            this.pingTimer = DateTime.Now.ToUniversalTime().Subtract(
-                new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-            ).TotalMilliseconds;
+            this.pingTimer = Stopwatch.StartNew();
 
             // Send out the packet
             this.SendMessage(new IrisPingMessage(IrisNetwork.LocalPlayer));

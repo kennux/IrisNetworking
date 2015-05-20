@@ -10,6 +10,8 @@ namespace IrisNetworking.Test
         [TestMethod]
         public void TestIrisStream()
         {
+            IrisNetwork.Initialize(new TestManager());
+
             IrisStream stream = new IrisStream(null);
 
             byte[] d1 = new byte[] { 1, 2, 3, 4, 5, 6 };
@@ -64,6 +66,61 @@ namespace IrisNetworking.Test
 
             for (int i = 0; i < d1.Length; i++)
                 Assert.AreEqual(d1[i], d2[i]);
+
+            // Additional types serialize
+            stream = new IrisStream(null);
+
+            object ob1 = (object)b1;
+            object os1 = (object)s1;
+            object oi1 = (object)i1;
+            object of1 = (object)f1;
+            object ostr1 = (object)str1;
+            object[] od1 = new object[] { (object)(byte)12, (object)(byte)23 };
+            object[] oia1 = new object[] { (object)(int)12, (object)(int)23 };
+            object ol1 = (object)l1;
+
+            object ob2 = (byte)0;
+            object os2 = (short)-1;
+            object oi2 = (int)1;
+            object of2 = (float)2;
+            object ostr2 = "dfdsfgsdfg";
+            object[] od2 = new object[] {(object)(byte)1, (object)(byte)2 };
+            object[] oia2 = new object[] { (object)(int)1, (object)(int)2 };
+            object ol2 = (long)1;
+
+            stream.SerializeAdditionalType(ref ob1);
+            stream.SerializeAdditionalType(ref os1);
+            stream.SerializeAdditionalType(ref oi1);
+            stream.SerializeAdditionalType(ref of1);
+            stream.SerializeAdditionalType(ref ostr1);
+            stream.SerializeAdditionalTypeArray(ref od1);
+            stream.SerializeAdditionalTypeArray(ref oia1);
+            stream.SerializeAdditionalType(ref ol1);
+
+            stream2 = new IrisStream(null, stream.GetBytes());
+
+            stream2.SerializeAdditionalType(ref ob2);
+            stream2.SerializeAdditionalType(ref os2);
+            stream2.SerializeAdditionalType(ref oi2);
+            stream2.SerializeAdditionalType(ref of2);
+            stream2.SerializeAdditionalType(ref ostr2);
+            stream2.SerializeAdditionalTypeArray(ref od2);
+            stream2.SerializeAdditionalTypeArray(ref oia2);
+            stream2.SerializeAdditionalType(ref ol2);
+
+            // Assert equality
+            Assert.AreEqual(ob1, ob2);
+            Assert.AreEqual(os1, os2);
+            Assert.AreEqual(oi1, oi2);
+            Assert.AreEqual(of1, of2);
+            Assert.AreEqual(ostr1, ostr2);
+            Assert.AreEqual(ol1, ol2);
+
+            for (int i = 0; i < oia1.Length; i++)
+                Assert.AreEqual(oia1[i], oia2[i]);
+
+            for (int i = 0; i < od1.Length; i++)
+                Assert.AreEqual(od1[i], od2[i]);
         }
     }
 }

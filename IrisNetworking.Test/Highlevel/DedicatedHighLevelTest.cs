@@ -290,7 +290,7 @@ namespace IrisNetworking.Test
         /// -> Rpc execution on the client
         /// 
         /// - RPC Arguments
-        /// - RPC Buffer clearance on the server
+        /// - RPC Buffer from client
         /// </summary>
         [TestMethod]
         public void TestDedicatedRPC()
@@ -299,6 +299,8 @@ namespace IrisNetworking.Test
             bool RPCWasSent = false;
             bool RPC2WasSent = false;
             bool RPC3WasSent = false;
+
+            int nextViewId = IrisNetwork.AllocateViewID() + 1;
 
             // Prepare sequence
             IrisTestMessageSequence rpcSequence = new IrisTestMessageSequence();
@@ -310,17 +312,22 @@ namespace IrisNetworking.Test
             remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
             {
                 IrisRPCMessage m = (IrisRPCMessage)message;
+                RPCWasSent = m.Sender.PlayerId == 1 && m.Method == "TestRPC" && m.viewId == nextViewId && m.Args.Length == 1 && m.Args[0].Equals("testarg");
+            });
+            remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
+            {
+                IrisRPCMessage m = (IrisRPCMessage)message;
                 RPCWasSent = m.Sender.PlayerId == 1 && m.Method == "TestRPC" && m.viewId == 1 && m.Args.Length == 1 && m.Args[0].Equals("testarg");
             });
             remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
             {
                 IrisRPCMessage m = (IrisRPCMessage)message;
-                RPC2WasSent = m.Sender.PlayerId == 1 && m.Method == "Test123" && m.viewId == 1 && m.Args.Length == 1 && m.Args[0].Equals("testarg");
+                RPC2WasSent = m.Sender.PlayerId == 1 && m.Method == "Test123" && m.viewId == nextViewId && m.Args.Length == 1 && m.Args[0].Equals("testarg");
             });
             remoteRpcSequence.AwaitReceive(typeof(IrisRPCMessage), (message) =>
             {
                 IrisRPCMessage m = (IrisRPCMessage)message;
-                RPC3WasSent = m.Sender.PlayerId == 1 && m.Method == "TestNoArgs" && m.viewId == 1;
+                RPC3WasSent = m.Sender.PlayerId == 1 && m.Method == "TestNoArgs" && m.viewId == nextViewId;
             });
 
             this.UpdateServerInMilliseconds(10);
@@ -343,10 +350,29 @@ namespace IrisNetworking.Test
 
             Thread.Sleep(15);
 
-            // Send rpc request
+            // Send view instantiation
+            testClient.SendMessage(new IrisInstantiationRequestMessage(null, "RTest", new byte[] { 1, 0, 0, 0, 1 }));
+
+            // Wait for the message to arrive
+            Thread.Sleep(100);
+
+            // Process message
+            this.UpdateServerAndClients(testClient, remoteTestClient);
+
+            // Wait for the answer to arrive
+            Thread.Sleep(100);
+
+            // Process answer
+            this.UpdateServerAndClients(testClient, remoteTestClient);
+
+            // Send rpcs
+            // 2 buffered for the new and static view 1
+            // The one on the dynamic view will get cleared by the client while the one on the static view will get cleared by the server.
+            // The others are just normal non-buffered rpcs.
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(nextViewId), "TestRPC", new object[] { "testarg" }, RPCTargets.Others, true));
             testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "TestRPC", new object[] { "testarg" }, RPCTargets.Others, true));
-            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "Test123", new object[] { "testarg" }, new IrisPlayer[] { new IrisPlayer(2) }));
-            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(1), "TestNoArgs", null, new IrisPlayer[] { new IrisPlayer(2) }));
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(nextViewId), "Test123", new object[] { "testarg" }, new IrisPlayer[] { new IrisPlayer(2) }));
+            testClient.SendMessage(new IrisRPCExecutionMessage(null, IrisNetwork.FindView(nextViewId), "TestNoArgs", null, new IrisPlayer[] { new IrisPlayer(2) }));
 
             // Wait for the message to arrive
             Thread.Sleep(100);
@@ -361,7 +387,17 @@ namespace IrisNetworking.Test
             this.UpdateServerAndClients(testClient, remoteTestClient);
 
             // Clear rpc buffer
+            testClient.SendMessage(new IrisRPCClearMessage(null, nextViewId));
             IrisNetwork.ClearRPCBuffer(IrisNetwork.FindView(1));
+
+            // Wait for the message to arrive
+            Thread.Sleep(100);
+
+            // Process message
+            this.UpdateServerAndClients(testClient, remoteTestClient);
+
+            // Let the server take over the view with the buffered rpcs
+            IrisNetwork.RequestViewOwnership(IrisNetwork.FindView(nextViewId));
 
             // Close clients
             testClient.Close();
@@ -372,8 +408,8 @@ namespace IrisNetworking.Test
             remoteRpcSequence.Validate();
 
             // Check if rpc was executed on the server
-            TestIrisView tv = (TestIrisView)IrisNetwork.FindView(1);
-            TestIrisView remoteTv = (TestIrisView)remoteMaster.FindView(1);
+            TestIrisView tv = (TestIrisView)IrisNetwork.FindView(nextViewId);
+            TestIrisView remoteTv = (TestIrisView)remoteMaster.FindView(nextViewId);
             Assert.IsTrue(remoteTv.CheckForRPCInLog("TestRPC", 1, true));
             Assert.IsTrue(remoteTv.CheckForRPCInLog("Test123", 1, true));
             Assert.IsTrue(tv.CheckForRPCInLog("TestRPC", 1, true));
@@ -384,13 +420,15 @@ namespace IrisNetworking.Test
             Assert.IsTrue(RPC3WasSent);
 
             bool rpcWasReceived = false;
+            bool rpc2WasReceived = false;
 
             // Test if rpc got removed
             IrisTestMessageSequence rpcBufferTestSequence = new IrisTestMessageSequence();
             rpcBufferTestSequence.AwaitReceive(typeof(IrisRPCMessage), (m) =>
             {
                 IrisRPCMessage message = (IrisRPCMessage)m;
-                rpcWasReceived = message.Method == "TestRPC" && message.Args.Length == 1 && message.Args[0].Equals("testarg");
+                rpcWasReceived = message.Method == "TestRPC" && message.viewId == nextViewId && message.Args.Length == 1 && message.Args[0].Equals("testarg");
+                rpc2WasReceived = message.Method == "TestRPC" && message.viewId == 1 && message.Args.Length == 1 && message.Args[0].Equals("testarg");
             });
 
             TestManager master = new TestManager();
@@ -404,6 +442,10 @@ namespace IrisNetworking.Test
             testClient.Close();
 
             Assert.IsFalse(rpcWasReceived);
+            Assert.IsFalse(rpc2WasReceived);
+
+            // Cleanup
+            IrisNetwork.DestroyObject(IrisNetwork.FindView(nextViewId));
         }
 
         /// <summary>
@@ -440,6 +482,65 @@ namespace IrisNetworking.Test
 
             testClient.Close();
 
+            sequence.Validate();
+        }
+
+        /// <summary>
+        /// Tests if the player left package arrives.
+        /// This test covers:
+        /// 
+        /// - Player disconnect detection and player left packet sending
+        /// </summary>
+        [TestMethod]
+        public void TestDedicatedPlayerLeft()
+        {
+            // Init with empty sequence
+            IrisTestMessageSequence sequence = new IrisTestMessageSequence();
+
+            bool playerLeftMessageWasCorrect = false;
+
+            // Await the ping update message
+            sequence.AwaitReceive(typeof(IrisPlayerLeftMessage), (m) =>
+            {
+                IrisPlayerLeftMessage message = (IrisPlayerLeftMessage)m;
+                playerLeftMessageWasCorrect = message.playerLeft.PlayerId == 2;
+            });
+
+            // Init networking
+            IrisNetwork.LocalPlayerName = "Player1";
+
+            this.UpdateServerInMilliseconds(20);
+            IrisTestClient testClient = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
+            {
+                sck.Close();
+            });
+
+            // Init networking for player 2
+            IrisNetwork.LocalPlayerName = "Player2";
+
+            this.UpdateServerInMilliseconds(20);
+            IrisTestClient testClient2 = new IrisTestClient(sequence, "127.0.0.1", 1337, new TestManager(), (sck) =>
+            {
+                sck.Close();
+            });
+
+            Assert.IsTrue(testClient.Handshaked);
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            // Close connection 2
+            testClient2.Close();
+
+            Thread.Sleep(100);
+            this.UpdateServerAndClients(testClient);
+
+            // Close connection 1
+            testClient.Close();
+
+            Assert.IsTrue(playerLeftMessageWasCorrect);
+
+            // Validate awaited sequence
             sequence.Validate();
         }
 

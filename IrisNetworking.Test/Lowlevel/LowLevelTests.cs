@@ -74,8 +74,10 @@ namespace IrisNetworking.Test
         [TestMethod]
         public void TestLowLevelCompression()
         {
-            byte[] sampleData = new byte[256];
+            byte[] sampleData = new byte[1280];
             new Random(DateTime.Now.Millisecond).NextBytes(sampleData);
+
+            int packetsGot = 0;
 
             // Create server socket
             IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
@@ -86,7 +88,7 @@ namespace IrisNetworking.Test
                     Assert.AreEqual(pi.payload.Length, sampleData.Length);
                     for (int i = 0; i < sampleData.Length; i++)
                         Assert.AreEqual(sampleData[i], pi.payload[i]);
-
+                    packetsGot++;
                 }, (sck) =>
                 {
                 });
@@ -101,17 +103,20 @@ namespace IrisNetworking.Test
 
             });
 
-            // Write sample data 100000 times
+            // Write sample data 1000 times
             IrisNetwork.Compression = IrisCompression.GOOGLE_SNAPPY;
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 clientSocket.SendRaw(sampleData);
             }
             IrisNetwork.Compression = IrisCompression.NONE;
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 clientSocket.SendRaw(sampleData);
             }
+
+            while (packetsGot < 2000)
+                System.Threading.Thread.Sleep(5);
 
             serverSocket.Close();
             clientSocket.Close();

@@ -10,14 +10,14 @@ namespace IrisNetworking.Internal
     /// </summary>
     public class IrisRPCClearMessage : IrisNetworkMessage
     {
-        public IrisView View;
+        public int ViewId;
 
         public IrisRPCClearMessage() { }
 
-        public IrisRPCClearMessage(IrisPlayer sender, IrisView view)
+        public IrisRPCClearMessage(IrisPlayer sender, int viewId)
             : base(sender)
         {
-            this.View = view;
+            this.ViewId = viewId;
         }
 
         public override byte GetPacketId()
@@ -27,17 +27,7 @@ namespace IrisNetworking.Internal
 
         public override void Serialize(IrisStream stream)
         {
-            if (stream.IsWriting)
-            {
-                int viewId = this.View.GetViewId();
-                stream.Serialize(ref viewId);
-            }
-            else
-            {
-                int viewId = -1;
-                stream.Serialize(ref viewId);
-                this.View = IrisNetwork.FindView(viewId);
-            }
+            stream.Serialize(ref this.ViewId);
         }
     }
 }

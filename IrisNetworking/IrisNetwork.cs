@@ -185,48 +185,63 @@ namespace IrisNetworking
             // Add standard serialization methods
             RegisterAdditionalSerializationMethod(typeof(byte), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = (byte)0;
+
                 byte d = (byte)o;
-                stream.Serialize(ref d);
-                o = (object)d;
-            });
-            RegisterAdditionalSerializationMethod(typeof(byte[]), delegate(IrisStream stream, ref object o)
-            {
-                byte[] d = (byte[])o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(short), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = (short)0;
+
                 short d = (short)o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(int), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = (int)0;
+
                 int d = (int)o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(long), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = (long)0;
+
                 long d = (long)o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(float), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = (float)0;
+
                 float d = (float)o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(string), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = "";
+
                 string d = (string)o;
                 stream.Serialize(ref d);
                 o = (object)d;
             });
             RegisterAdditionalSerializationMethod(typeof(IrisPlayer), delegate(IrisStream stream, ref object o)
             {
+                if (o == null)
+                    o = new IrisPlayer();
+
                 IrisPlayer d = (IrisPlayer)o;
                 stream.SerializeObject<IrisPlayer>(ref d);
                 o = (object)d;
@@ -374,17 +389,11 @@ namespace IrisNetworking
         /// </summary>
         public static void UpdateFrame()
         {
-            if (!Initialized)
-                throw new NotInitializedException("Cant send an update frame if networking didn't got initialized.");
-
-            if (!Connected)
-                throw new NotInitializedException("Cant send an update frame if not connected to a network.");
+            IrisNetwork.Update();
 
             long ticks = System.DateTime.Now.Ticks;
             if (isMasterClient)
             {
-                // Update
-                dedicatedServer.Update();
 
                 // Prepare frame update packet by first collecting all view information
                 List<IrisViewUpdate> updates = new List<IrisViewUpdate>();
@@ -426,8 +435,6 @@ namespace IrisNetworking
 			}
             else
             {
-                // Update
-                irisClient.Update();
 
                 if (!irisClient.Handshaked)
                     return;
@@ -470,6 +477,35 @@ namespace IrisNetworking
             float elapsedMilliseconds = (elapsedTicks * 10) * 0.000001f;
 
             IrisConsole.Log(IrisConsole.MessageType.DEBUG, "IrisNetwork", "UpdateFrame call took " + elapsedMilliseconds + " ms");
+        }
+
+        /// <summary>
+        /// This function is a smaller part of UpdateFrame().
+        /// It is the first call made in it.
+        /// 
+        /// This updates the client socket or dedicated server.
+        /// You can call this for example in every frame update of a game.
+        /// This function will only interpret incoming packets and set answers out.
+        /// It will __NOT__ send a frame update to other clients.
+        /// </summary>
+        public static void Update()
+        {
+            if (!Initialized)
+                throw new NotInitializedException("Cant update if networking didn't got initialized.");
+
+            if (!Connected)
+                throw new NotInitializedException("Cant update if not connected to a network.");
+
+            if (isDedicated)
+            {
+                // Update
+                dedicatedServer.Update();
+            }
+            else
+            {
+                // Update
+                irisClient.Update();
+            }
         }
 
         /// <summary>
@@ -694,7 +730,7 @@ namespace IrisNetworking
                 if (view.GetOwner() != master.GetLocalPlayer())
                     throw new NotSupportedException("Cannot clear rpc buffer of a view which is not owned by me.");
 
-                IrisRPCClearMessage clearMessage = new IrisRPCClearMessage(null, view);
+                IrisRPCClearMessage clearMessage = new IrisRPCClearMessage(null, view.GetViewId());
                 irisClient.SendMessage(clearMessage);
             }
         }
