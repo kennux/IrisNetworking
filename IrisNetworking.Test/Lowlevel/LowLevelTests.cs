@@ -135,15 +135,15 @@ namespace IrisNetworking.Test
 
 			// Create server socket
 			IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
-				{
+			{
 					IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
-						{
-							packetGot = true;
+					{
+						packetGot = true;
 
-						}, (sck) =>
-						{
-						});
-				});
+					}, (sck) =>
+					{
+                    }, 2560);
+			});
 
 			// Create client socket and try connection
 			IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
@@ -154,14 +154,12 @@ namespace IrisNetworking.Test
 
 			});
 
-			clientSocket.MaxMessageSize = 2560;
-
 			// Write sample data
 			clientSocket.SendRaw(sampleData);
 
 			// Wait for it to arrive
 			System.Threading.Thread.Sleep(500);
-			Assert.IsTrue (packetGot);
+			Assert.IsFalse (packetGot);
 
 			// Close sockets
 			serverSocket.Close();

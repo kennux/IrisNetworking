@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using IrisNetworking;
-using IrisNetworking.Exception;
 
 namespace IrisNetworking.Test
 {
@@ -132,7 +131,7 @@ namespace IrisNetworking.Test
 
 			try
 			{
-				int[] test = null;
+				object[] test = new object[0];
 				stream.SerializeAdditionalTypeArray(ref test);
 			}
 			catch (SerializationException e)
@@ -144,15 +143,16 @@ namespace IrisNetworking.Test
 
 			try
 			{
-				IrisTestView[] test = null;
-				stream.SerializeObject<IrisTestView>(ref test);
+				TestIrisView[] test = null;
+                stream.SerializeObject<TestIrisView>(ref test);
 			}
 			catch (SerializationException e)
 			{
-				additionalTypeArrayFailed = true;
+                serializableTypeArrayFailed = true;
 			}
 
-			Assert.IsTrue (additionalTypeArrayFailed);
+            Assert.IsTrue(additionalTypeArrayFailed);
+            Assert.IsTrue(serializableTypeArrayFailed);
         }
     }
 }

@@ -36,6 +36,8 @@ namespace IrisNetworking.Test
 
         protected List<RPCBufferInformation> rpcBuffer = new List<RPCBufferInformation>();
 
+        public TestIrisView() { }
+
         public TestIrisView(IrisPlayer owner, int viewId, string objectName)
         {
             this.SetObjectName(objectName);

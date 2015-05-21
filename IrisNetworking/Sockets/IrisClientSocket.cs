@@ -133,6 +133,17 @@ namespace IrisNetworking.Sockets
         }
 
         /// <summary>
+        /// Creates an iris socket from the given socket.
+        /// This will just set the client socket reference, start read/write threads and won't do any other initialization.
+        /// </summary>
+        /// <param name="socket"></param>
+        public IrisClientSocket(Socket socket, Action<PacketInformation> dataReceivedHandler, Action<IrisClientSocket> disconnectHandler, int maxMessageSize)
+            : this (socket,dataReceivedHandler, disconnectHandler)
+        {
+            this.MaxMessageSize = maxMessageSize;
+        }
+
+        /// <summary>
         /// Initializes this client socket.
         /// This function must get called in every constructor!
         /// </summary>
@@ -379,7 +390,7 @@ namespace IrisNetworking.Sockets
                     int payloadLength = BitConverter.ToInt32(header, 0);
 
 					// Payload length check
-					if (IrisNetwork.MaxMessageSize != 0 && payloadLength > IrisNetwork.MaxMessageSize)
+                    if (this.MaxMessageSize != 0 && payloadLength > this.MaxMessageSize)
 					{
 						IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClientSocket", "Maximum message size for socket exceeded! Message dropped and socket closed!");
 						this.Close();
