@@ -140,6 +140,7 @@ namespace IrisNetworking.Internal
 			catch (SerializationException e)
 			{
 				IrisConsole.Log (IrisConsole.MessageType.INFO, "IrisClient", "Message serialization thrown exception: " + e.Message + "\r\n\r\n");
+				this.Close ();
 			}
         }
 

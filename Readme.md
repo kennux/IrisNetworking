@@ -35,6 +35,10 @@ IrisNetworking.UpdateFrame() should get called everytime you want to interpret i
 This function will also send out a partial (on client) and a complete frame update on the server.
 So, normally you got a network update-rate of like 20 times a second, so you need to make sure your main-thread calls IrisNetworking.UpdateFrame() every 50ms.
 
+Additionally to IrisNetworking.UpdateFrame() theres als a function called IrisNetworking.Update().
+UpdateFrame is meant for actually sending out frames, while Update() will only process incoming messages.
+So you can call Update() on every Update() of your application, while you call UpdateFrame(), which will invoke Update(), only when you actually want to send out view state updates.
+
 Thread-safety
 ----------------------
 
