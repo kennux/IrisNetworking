@@ -1,15 +1,12 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="IrisNetworking/IrisNetwork.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="IrisNetworking.Test/Highlevel/IrisStreamTest.cs">
     <Files>
-      <File FileName="IrisMaster/Program.cs" Line="1" Column="1" />
-      <File FileName="IrisNetworking/IrisNetworkMessage.cs" Line="1" Column="1" />
-      <File FileName="IrisTestConsole/Program.cs" Line="1" Column="1" />
-      <File FileName="IrisTestConsole/TestManager.cs" Line="1" Column="1" />
-      <File FileName="IrisNetworking/IrisMaster.cs" Line="1" Column="1" />
-      <File FileName="IrisNetworking/IrisConsole.cs" Line="1" Column="1" />
-      <File FileName="IrisNetworking/IrisView.cs" Line="1" Column="1" />
-      <File FileName="IrisNetworking/IrisNetwork.cs" Line="14" Column="14" />
+      <File FileName="IrisNetworking/IrisNetwork.cs" Line="1" Column="1" />
+      <File FileName="IrisNetworking/IrisStream.cs" Line="36" Column="36" />
+      <File FileName="IrisNetworking/IrisView.cs" Line="18" Column="18" />
+      <File FileName="IrisNetworking/Internal/IrisClient.cs" Line="135" Column="135" />
+      <File FileName="IrisNetworking.Test/Highlevel/IrisStreamTest.cs" Line="4" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

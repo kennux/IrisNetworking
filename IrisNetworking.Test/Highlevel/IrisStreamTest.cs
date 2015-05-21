@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using IrisNetworking;
+using IrisNetworking.Exception;
 
 namespace IrisNetworking.Test
 {
@@ -121,6 +122,37 @@ namespace IrisNetworking.Test
 
             for (int i = 0; i < od1.Length; i++)
                 Assert.AreEqual(od1[i], od2[i]);
+
+			// Try something actually bad
+			bool additionalTypeArrayFailed = false;
+			bool serializableTypeArrayFailed = false;
+
+			byte[] testData = new byte[] { 255, 255, 255, 0 };
+			stream = new IrisStream (null, testData);
+
+			try
+			{
+				int[] test = null;
+				stream.SerializeAdditionalTypeArray(ref test);
+			}
+			catch (SerializationException e)
+			{
+				additionalTypeArrayFailed = true;
+			}
+
+			stream = new IrisStream (null, testData);
+
+			try
+			{
+				IrisTestView[] test = null;
+				stream.SerializeObject<IrisTestView>(ref test);
+			}
+			catch (SerializationException e)
+			{
+				additionalTypeArrayFailed = true;
+			}
+
+			Assert.IsTrue (additionalTypeArrayFailed);
         }
     }
 }

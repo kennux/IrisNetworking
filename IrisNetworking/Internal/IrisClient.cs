@@ -133,7 +133,14 @@ namespace IrisNetworking.Internal
             // Create iris stream
             IrisStream stream = new IrisStream(this.master, data);
 
-            this.HandlePacket(stream, header);
+			try
+			{
+            	this.HandlePacket(stream, header);
+			}
+			catch (SerializationException e)
+			{
+				IrisConsole.Log (IrisConsole.MessageType.INFO, "IrisClient", "Message serialization thrown exception: " + e.Message + "\r\n\r\n");
+			}
         }
 
         /// <summary>

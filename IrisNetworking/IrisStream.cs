@@ -68,6 +68,11 @@ namespace IrisNetworking
             this.Clear(data);
         }
 
+		private int DataLeft()
+		{
+			return this.data.Capacity - this.data.Position;
+		}
+
         /// <summary>
         /// Clears a writing stream
         /// </summary>
@@ -129,6 +134,9 @@ namespace IrisNetworking
                 this.data.Read(lengthBuffer, 0, 4);
                 int len = BitConverter.ToInt32(lengthBuffer, 0);
 
+				if (len > this.DataLeft ())
+					throw new SerializationException ("Tried to deserialize an oversized array!");
+
                 b = new byte[len];
                 this.data.Read(b, 0, len);
             }
@@ -151,6 +159,10 @@ namespace IrisNetworking
             {
                 int len = 0;
                 this.Serialize(ref len);
+
+				if (len * 4 > this.DataLeft ())
+					throw new SerializationException ("Tried to deserialize an oversized array!");
+
                 b = new int[len];
                 for (int i = 0; i < b.Length; i++)
                     this.Serialize(ref b[i]);
@@ -308,6 +320,9 @@ namespace IrisNetworking
                 this.data.Read(lengthBytes, 0, 4);
                 int length = BitConverter.ToInt32(lengthBytes, 0);
 
+				if (length > this.DataLeft)
+					throw new SerializationException ("Validity check for serializable type array failed");
+
                 // Load serializables
                 irisSerializables = (T[]) Array.CreateInstance(typeof(T), length);
                 for (int i = 0; i < irisSerializables.Length; i++)
@@ -353,6 +368,9 @@ namespace IrisNetworking
                 byte[] lengthBytes = new byte[4];
                 this.data.Read(lengthBytes, 0, 4);
                 int length = BitConverter.ToInt32(lengthBytes, 0);
+
+				if (length > this.DataLeft)
+					throw new SerializationException ("Validity check for additional type array failed");
 
                 o = new object[length];
             }
