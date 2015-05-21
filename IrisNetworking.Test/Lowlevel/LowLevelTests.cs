@@ -66,60 +66,106 @@ namespace IrisNetworking.Test
             Assert.IsTrue(connectionAccepted);
             Assert.IsTrue(gotData);
             Assert.IsTrue(disconnected);
-        }
+		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        [TestMethod]
-        public void TestLowLevelCompression()
-        {
-            byte[] sampleData = new byte[1280];
-            new Random(DateTime.Now.Millisecond).NextBytes(sampleData);
+		/// <summary>
+		/// 
+		/// </summary>
+		[TestMethod]
+		public void TestLowLevelCompression()
+		{
+			byte[] sampleData = new byte[1280];
+			new Random(DateTime.Now.Millisecond).NextBytes(sampleData);
 
-            int packetsGot = 0;
+			int packetsGot = 0;
 
-            // Create server socket
-            IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
-            {
-                IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
-                {
-                    // Check if this is the sample data
-                    Assert.AreEqual(pi.payload.Length, sampleData.Length);
-                    for (int i = 0; i < sampleData.Length; i++)
-                        Assert.AreEqual(sampleData[i], pi.payload[i]);
-                    packetsGot++;
-                }, (sck) =>
-                {
-                });
-            });
+			// Create server socket
+			IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
+				{
+					IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
+						{
+							// Check if this is the sample data
+							Assert.AreEqual(pi.payload.Length, sampleData.Length);
+							for (int i = 0; i < sampleData.Length; i++)
+								Assert.AreEqual(sampleData[i], pi.payload[i]);
+							packetsGot++;
+						}, (sck) =>
+						{
+						});
+				});
 
-            // Create client socket and try connection
-            IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
-            {
+			// Create client socket and try connection
+			IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
+				{
 
-            }, (socket) =>
-            {
+				}, (socket) =>
+				{
 
-            });
+				});
 
-            // Write sample data 1000 times
-            IrisNetwork.Compression = IrisCompression.GOOGLE_SNAPPY;
-            for (int i = 0; i < 1000; i++)
-            {
-                clientSocket.SendRaw(sampleData);
-            }
-            IrisNetwork.Compression = IrisCompression.NONE;
-            for (int i = 0; i < 1000; i++)
-            {
-                clientSocket.SendRaw(sampleData);
-            }
+			// Write sample data 1000 times
+			IrisNetwork.Compression = IrisCompression.GOOGLE_SNAPPY;
+			for (int i = 0; i < 1000; i++)
+			{
+				clientSocket.SendRaw(sampleData);
+			}
+			IrisNetwork.Compression = IrisCompression.NONE;
+			for (int i = 0; i < 1000; i++)
+			{
+				clientSocket.SendRaw(sampleData);
+			}
 
-            while (packetsGot < 2000)
-                System.Threading.Thread.Sleep(5);
+			while (packetsGot < 2000)
+				System.Threading.Thread.Sleep(5);
 
-            serverSocket.Close();
-            clientSocket.Close();
-        }
+			serverSocket.Close();
+			clientSocket.Close();
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		[TestMethod]
+		public void TestLowLevelMessageSize()
+		{
+			byte[] sampleData = new byte[25600];
+			new Random(DateTime.Now.Millisecond).NextBytes(sampleData);
+
+			bool packetGot = false;
+
+			// Create server socket
+			IrisServerSocket serverSocket = new IrisServerSocket("0.0.0.0", 1337, (socket) =>
+				{
+					IrisClientSocket cSocket = new IrisClientSocket(socket, (pi) =>
+						{
+							packetGot = true;
+
+						}, (sck) =>
+						{
+						});
+				});
+
+			// Create client socket and try connection
+			IrisClientSocket clientSocket = new IrisClientSocket("127.0.0.1", 1337, (pi) =>
+			{
+
+			}, (socket) =>
+			{
+
+			});
+
+			clientSocket.MaxMessageSize = 2560;
+
+			// Write sample data
+			clientSocket.SendRaw(sampleData);
+
+			// Wait for it to arrive
+			System.Threading.Thread.Sleep(500);
+			Assert.IsTrue (packetGot);
+
+			// Close sockets
+			serverSocket.Close();
+			clientSocket.Close();
+		}
     }
 }

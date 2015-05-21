@@ -26,7 +26,16 @@ namespace IrisNetworking
         /// <summary>
         /// The verbosity level for IrisConsole.
         /// </summary>
-        public static IrisConsole.IrisVerbosity verbosity = IrisConsole.IrisVerbosity.NONE;
+		public static IrisConsole.IrisVerbosity verbosity = IrisConsole.IrisVerbosity.NONE;
+
+		/// <summary>
+		/// The maximum size of a single message from client->server.
+		/// 0 means unlimited.
+		/// Default = 256kb
+		/// 
+		/// This can get used to prevent clients from sending very large frames which may crash the server.
+		/// </summary>
+		public static int MaxMessageSize = 256000;
 
         /// <summary>
         /// Gets the current connection state.

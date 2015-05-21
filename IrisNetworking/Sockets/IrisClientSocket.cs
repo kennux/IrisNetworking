@@ -74,7 +74,16 @@ namespace IrisNetworking.Sockets
         /// This message buffer is used in SendRaw(byte[]) to write messages if the socket is currently in buffering mode by another thread.
         /// Those messages will get flushed in this.StopTransaction().
         /// </summary>
-        private List<byte[]> temporaryMessageBuffer = null;
+		private List<byte[]> temporaryMessageBuffer = null;
+
+		/// <summary>
+		/// The maximum size of a single message from client->server.
+		/// 0 means unlimited.
+		/// Default = unlimited.
+		/// 
+		/// IrisClients on a server will set this variable to IrisNetwork.MaxMessageSize.
+		/// </summary>
+		public int MaxMessageSize = 0;
 
         /// <summary>
         /// This object gets used for a monitor while a socket is in packet buffering mode.
@@ -368,6 +377,13 @@ namespace IrisNetworking.Sockets
 
                     // Create the packet payload length from header field
                     int payloadLength = BitConverter.ToInt32(header, 0);
+
+					// Payload length check
+					if (IrisNetwork.MaxMessageSize != 0 && payloadLength > IrisNetwork.MaxMessageSize)
+					{
+						IrisConsole.Log(IrisConsole.MessageType.ERROR, "IrisClientSocket", "Maximum message size for socket exceeded! Message dropped and socket closed!");
+						this.Close();
+					}
 
                     // Get payload
                     byte[] payload = this.ReceiveReliable(payloadLength);

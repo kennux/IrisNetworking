@@ -70,7 +70,7 @@ namespace IrisNetworking
 
 		private int DataLeft()
 		{
-			return this.data.Capacity - this.data.Position;
+			return this.data.Capacity - (int)this.data.Position;
 		}
 
         /// <summary>
@@ -267,21 +267,24 @@ namespace IrisNetworking
             {
                 // Write bytes
                 byte[] bytes = encoding.GetBytes(s);
-                byte[] lengthBytes = BitConverter.GetBytes(bytes.Length);
-                this.data.Write(lengthBytes, 0, lengthBytes.Length);
                 this.data.Write(bytes, 0, bytes.Length);
+				this.data.WriteByte (0);
             }
             else
             {
-                // Load length bytes
-                byte[] lengthBytes = new byte[4];
-                this.data.Read(lengthBytes, 0, 4);
-                int length = BitConverter.ToInt32(lengthBytes, 0);
+				// Load till eof byte (0).
+				byte b = 1;
+				this.Serialize (ref b);
+				List<byte> bytes = new List<byte> ();
 
-                // Load payload string
-                byte[] bytes = new byte[length];
-                this.data.Read(bytes, 0, length);
-                s = encoding.GetString(bytes);
+				while (b != 0)
+				{
+					bytes.Add (b);
+
+					this.Serialize (ref b);
+				}
+
+				s = encoding.GetString(bytes.ToArray());
             }
         }
 
@@ -320,7 +323,7 @@ namespace IrisNetworking
                 this.data.Read(lengthBytes, 0, 4);
                 int length = BitConverter.ToInt32(lengthBytes, 0);
 
-				if (length > this.DataLeft)
+				if (length > this.DataLeft())
 					throw new SerializationException ("Validity check for serializable type array failed");
 
                 // Load serializables
@@ -369,7 +372,7 @@ namespace IrisNetworking
                 this.data.Read(lengthBytes, 0, 4);
                 int length = BitConverter.ToInt32(lengthBytes, 0);
 
-				if (length > this.DataLeft)
+				if (length > this.DataLeft())
 					throw new SerializationException ("Validity check for additional type array failed");
 
                 o = new object[length];

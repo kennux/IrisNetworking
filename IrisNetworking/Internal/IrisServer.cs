@@ -131,6 +131,9 @@ namespace IrisNetworking.Internal
                     // We got a free slot :>
                     this.master.SetPlayer(i + 1, new IrisPlayer(i + 1));
                     this.clients[i] = new IrisDedicatedClient(socket, this.master.GetPlayer(i + 1), this.master, this, this.ClientDisconnected);
+
+					// Set max message size
+					this.clients [i].ClientSocket.MaxMessageSize = IrisNetwork.MaxMessageSize;
                 }
                 else
                 {
